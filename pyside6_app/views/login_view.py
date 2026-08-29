@@ -13,6 +13,7 @@ class LoginView(QWidget):
         super().__init__(parent)
         self.setObjectName("loginView")
         self.setStyleSheet("background-color: #FAF7F0;")
+        self.show_password = False
         self.init_ui()
 
     def init_ui(self):
@@ -20,7 +21,7 @@ class LoginView(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Header
+        # ── TOP HEADER ──
         header = QFrame()
         header.setFixedHeight(65)
         header.setStyleSheet("background-color: #FAF7F0; border-bottom: 1px solid #EDE5D8;")
@@ -58,10 +59,15 @@ class LoginView(QWidget):
         ts_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #475569;")
         right_h.addWidget(ts_lbl)
 
+        self.size_buttons = []
         for txt in ("A-", "A", "A+"):
             btn = QPushButton(txt)
             btn.setFixedSize(30, 24)
-            btn.setStyleSheet("background-color: #FFFFFF; color: #334155; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 11px; font-weight: 700;")
+            if txt == "A":
+                btn.setStyleSheet("background-color: #0B213F; color: #FFFFFF; border: 1px solid #0B213F; border-radius: 4px; font-size: 11px; font-weight: 700;")
+            else:
+                btn.setStyleSheet("background-color: #FFFFFF; color: #334155; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 11px; font-weight: 700;")
+            self.size_buttons.append(btn)
             right_h.addWidget(btn)
 
         lang_lbl = QLabel("Language:")
@@ -84,17 +90,19 @@ class LoginView(QWidget):
         header_layout.addLayout(right_h)
         main_layout.addWidget(header)
 
-        # Center area
+        # ── MAIN WORKSPACE CONTENT ──
         center_widget = QWidget()
         center_layout = QHBoxLayout(center_widget)
         center_layout.setContentsMargins(60, 20, 60, 20)
         center_layout.setSpacing(40)
 
-        # Left artwork
+        # Left hero panel artwork
         left_panel_box = QVBoxLayout()
         left_panel_box.setAlignment(Qt.AlignCenter)
         art_lbl = QLabel()
         panel_art_path = os.path.join(assets_dir, "left_panel_clean.png")
+        if not os.path.exists(panel_art_path):
+            panel_art_path = os.path.join(assets_dir, "traffic_bg.png")
         if os.path.exists(panel_art_path):
             pix_art = QPixmap(panel_art_path).scaled(600, 460, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             art_lbl.setPixmap(pix_art)
@@ -112,7 +120,7 @@ class LoginView(QWidget):
         
         card_layout = QVBoxLayout(card)
         card_layout.setContentsMargins(32, 28, 32, 24)
-        card_layout.setSpacing(14)
+        card_layout.setSpacing(12)
 
         title_lbl = QLabel("Welcome Back!")
         title_lbl.setAlignment(Qt.AlignCenter)
@@ -121,25 +129,27 @@ class LoginView(QWidget):
 
         sub_lbl = QLabel("Sign in to access TRINETHRA Dashboard")
         sub_lbl.setAlignment(Qt.AlignCenter)
-        sub_lbl.setStyleSheet("font-size: 12px; font-weight: 500; color: #64748B; margin-top: -6px;")
+        sub_lbl.setStyleSheet("font-size: 12px; font-weight: 500; color: #64748B; margin-top: -4px;")
         card_layout.addWidget(sub_lbl)
 
+        # Gold Lock Divider
         div_h = QHBoxLayout()
         line1 = QFrame()
         line1.setFrameShape(QFrame.HLine)
-        line1.setStyleSheet("background-color: #E2E8F0; max-height: 1px;")
+        line1.setStyleSheet("background-color: #E8DFC8; max-height: 1px;")
         line2 = QFrame()
         line2.setFrameShape(QFrame.HLine)
-        line2.setStyleSheet("background-color: #E2E8F0; max-height: 1px;")
+        line2.setStyleSheet("background-color: #E8DFC8; max-height: 1px;")
         lock_icon_lbl = QLabel("🔒")
-        lock_icon_lbl.setStyleSheet("font-size: 11px; padding: 4px; border: 1px solid #D5C29D; border-radius: 12px; background-color: #FAF8F5; color: #B8934C;")
+        lock_icon_lbl.setStyleSheet("font-size: 11px; padding: 4px 6px; border: 1px solid #D5C29D; border-radius: 12px; background-color: #FAF8F5; color: #B8934C;")
         div_h.addWidget(line1)
         div_h.addWidget(lock_icon_lbl)
         div_h.addWidget(line2)
         card_layout.addLayout(div_h)
 
+        # Username Input
         user_lbl = QLabel("Username / Operator ID")
-        user_lbl.setStyleSheet("font-size: 11.5px; font-weight: 700; color: #334155; margin-top: 4px;")
+        user_lbl.setStyleSheet("font-size: 11.5px; font-weight: 700; color: #334155; margin-top: 2px;")
         card_layout.addWidget(user_lbl)
 
         self.user_input = QLineEdit()
@@ -148,17 +158,34 @@ class LoginView(QWidget):
         self.user_input.setStyleSheet("background-color: #454D5D; border: 1px solid #38404E; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #FFFFFF;")
         card_layout.addWidget(self.user_input)
 
+        # Password Input with Toggle
         pass_lbl = QLabel("Password")
         pass_lbl.setStyleSheet("font-size: 11.5px; font-weight: 700; color: #334155;")
         card_layout.addWidget(pass_lbl)
+
+        pass_frame = QFrame()
+        pass_frame.setStyleSheet("background-color: #454D5D; border: 1px solid #38404E; border-radius: 8px;")
+        pass_layout = QHBoxLayout(pass_frame)
+        pass_layout.setContentsMargins(10, 0, 10, 0)
+        pass_layout.setSpacing(6)
 
         self.pass_input = QLineEdit()
         self.pass_input.setPlaceholderText("Enter your password")
         self.pass_input.setEchoMode(QLineEdit.Password)
         self.pass_input.setText("password123")
-        self.pass_input.setStyleSheet("background-color: #454D5D; border: 1px solid #38404E; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #FFFFFF;")
-        card_layout.addWidget(self.pass_input)
+        self.pass_input.setStyleSheet("background: transparent; border: none; font-size: 12.5px; color: #FFFFFF; padding: 10px 0px;")
+        pass_layout.addWidget(self.pass_input, 1)
 
+        self.eye_btn = QPushButton("👁️")
+        self.eye_btn.setFixedSize(28, 28)
+        self.eye_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        self.eye_btn.setStyleSheet("background: transparent; border: none; font-size: 14px; color: #94A3B8;")
+        self.eye_btn.clicked.connect(self.toggle_password_visibility)
+        pass_layout.addWidget(self.eye_btn)
+
+        card_layout.addWidget(pass_frame)
+
+        # Options
         opt_h = QHBoxLayout()
         self.remember_cb = QCheckBox("Remember me")
         self.remember_cb.setChecked(True)
@@ -169,6 +196,7 @@ class LoginView(QWidget):
         opt_h.addWidget(forgot_link)
         card_layout.addLayout(opt_h)
 
+        # Sign In Button
         self.sign_in_btn = QPushButton("🔒  Sign In")
         self.sign_in_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.sign_in_btn.setFixedHeight(42)
@@ -207,7 +235,7 @@ class LoginView(QWidget):
         center_layout.addLayout(card_container, 40)
         main_layout.addWidget(center_widget, 1)
 
-        # Footer
+        # ── BOTTOM FOOTER ──
         footer = QFrame()
         footer.setFixedHeight(45)
         footer.setStyleSheet("background-color: #0B213F;")
@@ -221,6 +249,15 @@ class LoginView(QWidget):
         footer_layout.addWidget(links_lbl)
         main_layout.addWidget(footer)
 
+    def toggle_password_visibility(self):
+        self.show_password = not self.show_password
+        if self.show_password:
+            self.pass_input.setEchoMode(QLineEdit.Normal)
+            self.eye_btn.setText("🙈")
+        else:
+            self.pass_input.setEchoMode(QLineEdit.Password)
+            self.eye_btn.setText("👁️")
+
     def handle_login(self):
         user = self.user_input.text().strip()
         pwd = self.pass_input.text().strip()
@@ -228,3 +265,4 @@ class LoginView(QWidget):
             QMessageBox.warning(self, "Validation Error", "Please enter both username and password.")
             return
         self.login_success.emit()
+

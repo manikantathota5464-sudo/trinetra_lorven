@@ -133,22 +133,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       </header>
 
       {/* ── MAIN WORKSPACE CONTENT ── */}
-      <main className="flex-1 w-full max-w-[1360px] mx-auto px-4 sm:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
+      <main className="flex-1 w-full max-w-[1360px] mx-auto px-4 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-center gap-6 lg:gap-10 z-10 my-auto">
 
-        {/* ── LEFT HERO PANEL (Clean artwork with no cut-off header slices) ── */}
-        <div className="lg:col-span-7 flex items-center justify-center relative w-full min-h-[460px] lg:min-h-[500px]">
-          <div className="w-full h-full relative flex items-center justify-center">
-            <img
-              src="/assets/login/left_panel_clean.png"
-              alt="TRINETHRA Intelligent Traffic Management"
-              className="w-full max-w-[600px] h-auto object-contain drop-shadow-sm rounded-lg"
-            />
-          </div>
+        {/* ── LEFT HERO PANEL ── */}
+        <div className="w-full md:w-1/2 max-w-[560px] flex items-center justify-center">
+          <img
+            src="./assets/login/left_panel_clean.png"
+            alt="TRINETHRA Intelligent Traffic Management"
+            className="w-full h-auto max-h-[500px] object-contain drop-shadow-sm rounded-2xl"
+          />
         </div>
 
         {/* ── RIGHT LOGIN CARD ── */}
-        <div className="lg:col-span-5 w-full flex justify-center lg:justify-end">
-          <div className="w-full max-w-[460px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.09)] border border-[#EDE5D8] overflow-hidden">
+        <div className="w-full md:w-1/2 max-w-[450px] flex justify-center">
+          <div className="w-full bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.09)] border border-[#EDE5D8] overflow-hidden">
 
             {/* Header */}
             <div className="px-8 pt-7 pb-4 text-center">

@@ -10,7 +10,7 @@ export const StateEmblem: React.FC<StateEmblemProps> = ({
 }) => {
   return (
     <img
-      src="/assets/login/emblem_clean_no_black.png"
+      src="./assets/login/emblem_clean_no_black.png"
       alt="State Emblem of India"
       className={`${className} object-contain select-none flex-shrink-0`}
     />

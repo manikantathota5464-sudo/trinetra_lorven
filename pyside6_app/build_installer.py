@@ -14,6 +14,7 @@ cmd = [
     "--onedir",
     "--windowed",
     "--name", "Trinethra",
+    f"--icon={os.path.join(assets_dir, 'app_icon.ico')}",
     f"--add-data={assets_dir};assets",
     main_py
 ]
