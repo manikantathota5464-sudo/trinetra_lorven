@@ -159,23 +159,26 @@ export const CitizenFeedbackPage: React.FC = () => {
     <div className="space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-[#F4EFE6] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 gov-card-interactive">
         <div>
-          <div className="flex items-center gap-2 text-[#0C2540] font-black text-xs uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-[#0A2540] font-black text-xs uppercase tracking-wider mb-1">
             <MessageSquare size={16} />
-            <span>Public Redressal &amp; Incident Desk</span>
+            <span>Public Redressal &amp; Incident Desk — Integrated with CPGRAMS</span>
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-            Citizen Grievance &amp; Feedback Portal
+          <h2 className="text-4xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 tracking-tight flex items-center gap-2.5">
+            <span>Citizen Grievance &amp; Feedback Portal</span>
+            <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-bold uppercase">
+              CPGRAMS Synced
+            </span>
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Real-time citizen crowd-sourced alerts, hazard reporting, and road condition feedback.
+            Real-time citizen crowd-sourced alerts, hazard reporting, and road condition feedback directly mapped to MoRTH Citizen Redressal Cell &amp; NHAI Field Units.
           </p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#0C2540] hover:bg-[#16385C] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md transition"
+          className="bg-[#0A2540] hover:bg-[#163E66] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md transition cursor-pointer"
         >
           <PlusCircle size={16} />
           <span>+ Submit Citizen Report</span>
@@ -184,26 +187,26 @@ export const CitizenFeedbackPage: React.FC = () => {
 
       {/* KPI Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-[#F4EFE6] shadow-sm">
+        <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
           <span className="text-[10px] font-bold uppercase text-slate-400 block">Total Reports Logged</span>
-          <span className="text-2xl font-black text-slate-800">{totalCount}</span>
+          <span className="text-4xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800">{totalCount}</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
           <span className="text-[10px] font-bold uppercase text-red-500 block">Urgent Active Hazards</span>
-          <span className="text-2xl font-black text-red-600">{urgentCount}</span>
+          <span className="text-4xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600">{urgentCount}</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm">
           <span className="text-[10px] font-bold uppercase text-orange-500 block">Under Action / Patrol</span>
-          <span className="text-2xl font-black text-orange-600">{inProgressCount}</span>
+          <span className="text-4xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-orange-600">{inProgressCount}</span>
         </div>
         <div className="bg-white p-4 rounded-xl border border-green-100 shadow-sm">
           <span className="text-[10px] font-bold uppercase text-green-600 block">Successfully Resolved</span>
-          <span className="text-2xl font-black text-green-700">{resolvedCount}</span>
+          <span className="text-4xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-green-700">{resolvedCount}</span>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-xl p-4 border border-[#F4EFE6] shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+      <div className="bg-white rounded-xl p-4 border border-[#E2E8F0] shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
           <input
@@ -211,7 +214,7 @@ export const CitizenFeedbackPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by ticket ID, citizen name, location, or issue description..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
           />
         </div>
 
@@ -219,7 +222,7 @@ export const CitizenFeedbackPage: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
           >
             <option value="All">All Categories</option>
             <option value="Signal Malfunction">Signal Malfunction</option>
@@ -231,7 +234,7 @@ export const CitizenFeedbackPage: React.FC = () => {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
           >
             <option value="All">All Statuses</option>
             <option value="New">New</option>
@@ -247,11 +250,11 @@ export const CitizenFeedbackPage: React.FC = () => {
         {filteredItems.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-2xl p-5 border border-[#F4EFE6] shadow-sm space-y-3 hover:border-slate-300 transition"
+            className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm space-y-3 hover:border-slate-300 transition"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#0C2540] bg-slate-100 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-bold text-[#0A2540] bg-slate-100 px-2 py-0.5 rounded">
                   {item.id}
                 </span>
                 <span className="text-xs font-extrabold text-slate-800">
@@ -324,7 +327,7 @@ export const CitizenFeedbackPage: React.FC = () => {
 
               <button
                 onClick={() => handleUpvote(item.id)}
-                className="flex items-center gap-1 text-xs font-bold text-[#0C2540] hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition"
+                className="flex items-center gap-1 text-xs font-bold text-[#0A2540] hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition"
               >
                 <ThumbsUp size={13} />
                 <span>Verify / Upvote ({item.upvotes})</span>
@@ -345,7 +348,7 @@ export const CitizenFeedbackPage: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-[#0C2540]">
+              <div className="flex items-center gap-2 text-[#0A2540]">
                 <PlusCircle size={18} />
                 <h3 className="text-base font-black text-slate-900">
                   Submit Citizen Feedback / Hazard
@@ -365,7 +368,7 @@ export const CitizenFeedbackPage: React.FC = () => {
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0C2540]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0A2540]"
                 >
                   <option value="Traffic Congestion">Traffic Congestion</option>
                   <option value="Signal Malfunction">Signal Malfunction</option>
@@ -383,7 +386,7 @@ export const CitizenFeedbackPage: React.FC = () => {
                   placeholder="e.g. Ring Road Junction 4, Near Bridge 2"
                   value={newLocation}
                   onChange={(e) => setNewLocation(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0C2540]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0A2540]"
                 />
               </div>
 
@@ -396,7 +399,7 @@ export const CitizenFeedbackPage: React.FC = () => {
                     placeholder="e.g. Amit Kumar"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0C2540]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0A2540]"
                   />
                 </div>
                 <div>
@@ -406,7 +409,7 @@ export const CitizenFeedbackPage: React.FC = () => {
                     placeholder="+91 98765 43210"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0C2540]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0A2540]"
                   />
                 </div>
               </div>
@@ -421,7 +424,7 @@ export const CitizenFeedbackPage: React.FC = () => {
                       onClick={() => setNewSeverity(sev)}
                       className={`py-1.5 rounded-lg border text-center font-bold ${
                         newSeverity === sev 
-                          ? 'bg-[#0C2540] text-white border-[#0C2540]' 
+                          ? 'bg-[#0A2540] text-white border-[#0A2540]' 
                           : 'bg-slate-50 text-slate-600 border-slate-200'
                       }`}
                     >
@@ -439,7 +442,7 @@ export const CitizenFeedbackPage: React.FC = () => {
                   placeholder="Describe the condition, vehicle plates, or road obstacle in detail..."
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0C2540]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-[#0A2540]"
                 />
               </div>
 
@@ -447,13 +450,13 @@ export const CitizenFeedbackPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#0C2540] hover:bg-[#16385C] text-white rounded-lg font-bold flex items-center gap-1.5 shadow-md"
+                  className="px-5 py-2 bg-[#0A2540] hover:bg-[#16385C] text-white rounded-lg font-bold flex items-center gap-1.5 shadow-md"
                 >
                   <Send size={14} />
                   <span>Register Ticket</span>

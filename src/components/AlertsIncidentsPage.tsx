@@ -99,10 +99,10 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Total Alerts */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Alerts</span>
-            <div className="text-xl font-black text-[#0C2540] mt-1">{totalCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-1">{totalCount}</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">All time logged cases</span>
           </div>
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
@@ -111,10 +111,10 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
         </div>
 
         {/* Active Alerts */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Active Alerts</span>
-            <div className="text-xl font-black text-red-600 mt-1">{activeCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-1">{activeCount}</div>
             <span className="text-[9px] text-red-500 font-semibold block mt-0.5">Requires attention</span>
           </div>
           <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
@@ -123,10 +123,10 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
         </div>
 
         {/* Fined Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Fined Vehicles</span>
-            <div className="text-xl font-black text-slate-800 mt-1">{finedCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">{finedCount}</div>
             <span className="text-[9px] text-emerald-600 font-bold block mt-0.5">↑ 12.4% this month</span>
           </div>
           <div className="p-2.5 bg-slate-100 text-slate-700 rounded-lg">
@@ -135,10 +135,10 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
         </div>
 
         {/* Stolen Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
-            <div className="text-xl font-black text-indigo-600 mt-1">{stolenCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-indigo-600 mt-1">{stolenCount}</div>
             <span className="text-[9px] text-purple-600 font-bold block mt-0.5">↑ 8.7% active cases</span>
           </div>
           <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -147,10 +147,10 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
         </div>
 
         {/* Cloned Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
-            <div className="text-xl font-black text-orange-600 mt-1">{clonedCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-orange-600 mt-1">{clonedCount}</div>
             <span className="text-[9px] text-amber-500 font-bold block mt-0.5">↑ 15.2% investigating</span>
           </div>
           <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
@@ -172,13 +172,13 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
                   isActive
-                    ? 'border-[#0C2540] text-[#0C2540] font-black'
+                    ? 'border-[#0A2540] text-[#0A2540] font-black'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <span>{tab === 'All' ? 'All Alerts' : tab + ' Vehicles'}</span>
                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-[#0C2540] text-white' : 'bg-slate-100 text-slate-500'
+                  isActive ? 'bg-[#0A2540] text-white' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {counts}
                 </span>
@@ -189,7 +189,7 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
       </div>
 
       {/* Filters Segment (Screenshot 1) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm space-y-3">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           
           {/* Date range picker representation */}
@@ -259,7 +259,7 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
               placeholder="Search by plate, ID, details..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
             />
           </div>
 
@@ -275,24 +275,24 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
       </div>
 
       {/* Table Data Grid */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative overflow-hidden shadow-sm">
         <div className="overflow-x-auto scrollbar-thin">
           <table className="min-w-full divide-y divide-slate-100 text-left">
-            <thead className="bg-[#FAF8F5] text-[10px] font-black text-slate-400 uppercase tracking-wider">
+            <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-3.5">Alert ID</th>
-                <th className="px-6 py-3.5">Type</th>
-                <th className="px-6 py-3.5">Plate Number</th>
-                <th className="px-6 py-3.5">Vehicle Details</th>
-                <th className="px-6 py-3.5">Location / Camera</th>
-                <th className="px-6 py-3.5">Time & Date</th>
-                <th className="px-6 py-3.5">Status</th>
-                <th className="px-6 py-3.5 text-center">Actions</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Alert ID</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Type</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Plate Number</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Vehicle Details</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Location / Camera</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Time & Date</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Status</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
               {filteredAlerts.map((alert) => (
-                <tr key={alert.id} className="hover:bg-slate-50 transition">
+                <tr key={alert.id} className="hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 transition-colors duration-200 group border-l-4 border-l-transparent hover:border-l-[#FF9933]">
                   <td className="px-6 py-4">
                     <div className="font-extrabold text-slate-800">{alert.id}</div>
                     <span className="text-[10px] text-slate-400 font-semibold">#18291</span>
@@ -379,15 +379,15 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
         <div className="px-6 py-4 bg-[#FAF8F5] border-t border-slate-100 flex items-center justify-between flex-wrap gap-4 text-xs font-semibold text-slate-500">
           <span>Showing 1 to {filteredAlerts.length} of {filteredAlerts.length} alerts</span>
           <div className="flex items-center gap-2">
-            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
+            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 text-slate-400">
               <ChevronLeft size={16} />
             </button>
-            <button className="px-3 py-1 bg-[#0C2540] text-white rounded-lg font-black shadow-sm">1</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">2</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">3</button>
+            <button className="px-3 py-1 bg-[#0A2540] text-white rounded-lg font-black shadow-sm">1</button>
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">2</button>
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">3</button>
             <span>...</span>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">125</button>
-            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">125</button>
+            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 text-slate-400">
               <ChevronRight size={16} />
             </button>
           </div>
@@ -399,7 +399,7 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
       {selectedAlert && (
         <div className="fixed inset-0 bg-black/55 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden">
-            <div className="p-4 bg-[#0C2540] text-white font-bold flex justify-between items-center">
+            <div className="p-4 bg-[#0A2540] text-white font-bold flex justify-between items-center">
               <span>Alert Case Details - {selectedAlert.id}</span>
               <button onClick={() => setSelectedAlert(null)} className="text-white hover:text-slate-200 font-black text-sm">
                 ✕
@@ -423,7 +423,7 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Incident Type</span>
-                  <div className="font-bold text-[#0C2540]">{selectedAlert.type}</div>
+                  <div className="font-bold text-[#0A2540]">{selectedAlert.type}</div>
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Reporting Camera</span>
@@ -458,7 +458,7 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
                 )}
                 <button
                   onClick={() => setSelectedAlert(null)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold"
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl font-bold"
                 >
                   Close
                 </button>

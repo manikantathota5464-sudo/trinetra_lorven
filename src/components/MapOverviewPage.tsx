@@ -156,7 +156,7 @@ export const MapOverviewPage: React.FC = () => {
     <div className="space-y-6">
       
       {/* Page Header Navigation (Screenshot 6) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-5 shadow-sm">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Map Overview</h3>
@@ -175,10 +175,10 @@ export const MapOverviewPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
         
         {/* Total Cameras */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Cameras</span>
-            <div className="text-xl font-black text-[#0C2540] mt-1">128</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-1">128</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Across 28 locations</span>
           </div>
           <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
@@ -187,11 +187,11 @@ export const MapOverviewPage: React.FC = () => {
         </div>
 
         {/* Active Cameras */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Active Cameras</span>
-              <div className="text-xl font-black text-slate-800 mt-1">104</div>
+              <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">104</div>
             </div>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
               <Activity size={18} />
@@ -204,10 +204,10 @@ export const MapOverviewPage: React.FC = () => {
         </div>
 
         {/* Active Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-450 block tracking-wider">Active Vehicles</span>
-            <div className="text-xl font-black text-indigo-600 mt-1">215</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-indigo-600 mt-1">215</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Currently monitored</span>
           </div>
           <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -216,10 +216,10 @@ export const MapOverviewPage: React.FC = () => {
         </div>
 
         {/* Active Alerts */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-450 block tracking-wider">Active Alerts</span>
-            <div className="text-xl font-black text-red-600 mt-1">86</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-1">86</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Requires attention</span>
           </div>
           <div className="p-2 bg-red-50 text-red-600 rounded-lg">
@@ -228,10 +228,10 @@ export const MapOverviewPage: React.FC = () => {
         </div>
 
         {/* Incidents Today */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-450 block tracking-wider">Incidents Today</span>
-            <div className="text-xl font-black text-amber-600 mt-1">42</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-amber-600 mt-1">42</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Reported incidents</span>
           </div>
           <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
@@ -242,7 +242,7 @@ export const MapOverviewPage: React.FC = () => {
       </div>
 
       {/* Main Map View Space */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm space-y-4">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-5 shadow-sm space-y-4">
         
         {/* Map Header with controls */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
@@ -269,7 +269,7 @@ export const MapOverviewPage: React.FC = () => {
                 placeholder="Search location, camera, or place..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 border border-slate-200 bg-slate-50 rounded-xl text-xs w-64 focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+                className="pl-9 pr-4 py-2 border border-slate-200 bg-slate-50 rounded-xl text-xs w-64 focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
               />
             </div>
           </div>
@@ -285,11 +285,11 @@ export const MapOverviewPage: React.FC = () => {
               </button>
             </div>
             
-            <button className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600" title="Refresh Map">
+            <button className="p-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-slate-600" title="Refresh Map">
               <RefreshCw size={14} />
             </button>
             
-            <button className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 flex items-center gap-1 text-xs font-semibold">
+            <button className="p-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-slate-600 flex items-center gap-1 text-xs font-semibold">
               <Layers size={14} />
               <span>Layers</span>
             </button>
@@ -350,7 +350,7 @@ export const MapOverviewPage: React.FC = () => {
 
           {/* Central Hub Marker */}
           <div className="absolute top-[170px] left-[236px] -translate-x-1/2 -translate-y-1/2">
-            <div className="h-7 w-7 rounded-full bg-[#0C2540] border-2 border-white flex items-center justify-center shadow-lg animate-pulse">
+            <div className="h-7 w-7 rounded-full bg-[#0A2540] border-2 border-white flex items-center justify-center shadow-lg animate-pulse">
               <MapPin className="text-white" size={14} />
             </div>
           </div>
@@ -374,7 +374,7 @@ export const MapOverviewPage: React.FC = () => {
                 key={node.id}
                 onClick={() => setSelectedNode(node)}
                 className={`absolute p-1.5 rounded-full border-2 shadow-md transition-all ${getColorClass()} ${
-                  isFocused ? 'scale-125 ring-4 ring-[#0C2540]/30 z-20' : 'hover:scale-110'
+                  isFocused ? 'scale-125 ring-4 ring-[#0A2540]/30 z-20' : 'hover:scale-110'
                 }`}
                 style={{ top: `${node.y}px`, left: `${node.x}px`, transform: 'translate(-50%, -50%)' }}
               >
@@ -389,7 +389,7 @@ export const MapOverviewPage: React.FC = () => {
 
           {/* Floating Details Popup Drawer (If selected node is active) */}
           {selectedNode && (
-            <div className="absolute bottom-4 left-4 bg-white border border-slate-200 rounded-xl p-4 shadow-xl max-w-sm w-full z-30">
+            <div className="absolute bottom-4 left-4 bg-white border border-slate-200 border-t-4 border-t-[#0A2540] rounded-xl hover:shadow-lg transition-all duration-300 gov-card-interactive group p-4 shadow-xl max-w-sm w-full z-30">
               <div className="flex justify-between items-start">
                 <div className="leading-tight">
                   <div className="flex items-center gap-1.5">

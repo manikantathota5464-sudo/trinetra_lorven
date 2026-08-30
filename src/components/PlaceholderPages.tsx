@@ -4,14 +4,14 @@ import { BarChart3, History, ShieldAlert, Clock, FileSpreadsheet } from 'lucide-
 export const AnalyticsPage: React.FC = () => {
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
         <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Traffic Analytics</h3>
         <span className="text-[10px] text-slate-450 font-semibold block mt-0.5">
           Real-time AI telemetry analysis and predictions.
         </span>
       </div>
 
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-12 text-center shadow-sm space-y-4">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-12 text-center shadow-sm space-y-4">
         <div className="mx-auto w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
           <BarChart3 size={32} />
         </div>
@@ -41,17 +41,17 @@ export const AuditLogPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
         <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">System Audit Log</h3>
         <span className="text-[10px] text-slate-450 font-semibold block mt-0.5">
           Verifiable cryptographic log of all operator and daemon operations.
         </span>
       </div>
 
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-100 flex justify-between items-center flex-wrap gap-4">
           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Recent Logs</span>
-          <button className="text-xs text-[#0C2540] font-bold hover:underline flex items-center gap-1">
+          <button className="text-xs text-[#0A2540] font-bold hover:underline flex items-center gap-1">
             <FileSpreadsheet size={14} />
             <span>Export CSV</span>
           </button>

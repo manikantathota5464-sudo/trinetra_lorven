@@ -60,7 +60,7 @@ export const ReportsPage: React.FC = () => {
     <div className="space-y-6">
       
       {/* Search Filter Header (Screenshot 7) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm space-y-4">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-5 shadow-sm space-y-4">
         
         {/* Title row */}
         <div className="flex justify-between items-center border-b border-slate-100 pb-3 flex-wrap gap-4">
@@ -159,12 +159,12 @@ export const ReportsPage: React.FC = () => {
           </div>
 
           <div className="flex gap-2">
-            <button className="flex-1 bg-[#0C2540] hover:bg-[#18385A] text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
+            <button className="flex-1 bg-[#0A2540] hover:bg-[#18385A] text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
               Apply Filters
             </button>
             <button
               onClick={() => { setReportType('All Reports'); setLocation('Bhimavaram'); setCameraFilter('All Cameras'); setVehicleType('All Types'); }}
-              className="px-3 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition"
+              className="px-3 py-2.5 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-slate-600 transition"
               title="Reset Filters"
             >
               <RefreshCw size={14} />
@@ -178,9 +178,9 @@ export const ReportsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Total Detections */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm">
           <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Detections</span>
-          <div className="text-xl font-black text-slate-800 mt-1">18,745</div>
+          <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">18,745</div>
           <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 mt-1">
             <TrendingUp size={10} />
             <span>+12.4% vs 04 May - 10 May 2025</span>
@@ -188,9 +188,9 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {/* Active Alerts */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm">
           <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Active Alerts</span>
-          <div className="text-xl font-black text-red-600 mt-1">86</div>
+          <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-1">86</div>
           <div className="flex items-center gap-1 text-[9px] font-bold text-red-600 mt-1">
             <TrendingUp size={10} />
             <span>+8.6% vs 04 May - 10 May 2025</span>
@@ -198,9 +198,9 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {/* Stolen Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm">
           <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
-          <div className="text-xl font-black text-slate-800 mt-1">24</div>
+          <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">24</div>
           <div className="flex items-center gap-1 text-[9px] font-bold text-red-500 mt-1">
             <TrendingDown size={10} />
             <span>-9.1% vs 04 May - 10 May 2025</span>
@@ -208,9 +208,9 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {/* Cloned Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm">
           <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
-          <div className="text-xl font-black text-slate-800 mt-1">31</div>
+          <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">31</div>
           <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 mt-1">
             <TrendingUp size={10} />
             <span>+14.8% vs 04 May - 10 May 2025</span>
@@ -218,9 +218,9 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {/* Fined Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm">
           <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Fined Vehicles</span>
-          <div className="text-xl font-black text-slate-800 mt-1">112</div>
+          <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">112</div>
           <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 mt-1">
             <TrendingUp size={10} />
             <span>+6.3% vs 04 May - 10 May 2025</span>
@@ -241,7 +241,7 @@ export const ReportsPage: React.FC = () => {
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3 text-xs font-bold transition border-b-2 ${
                   isActive
-                    ? 'border-[#0C2540] text-[#0C2540] font-black'
+                    ? 'border-[#0A2540] text-[#0A2540] font-black'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -256,7 +256,7 @@ export const ReportsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Detections Over Time (Line / Area Chart - lg:col-span-5) */}
-        <div className="lg:col-span-5 bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-center mb-4">
             <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Detections Over Time</h4>
             <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[9px] font-bold">Daily</span>
@@ -282,7 +282,7 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {/* Detections by Vehicle Type (Donut Chart - lg:col-span-3) */}
-        <div className="lg:col-span-3 bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
           <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-4">Detections by Vehicle Type</h4>
           
           <div className="relative h-48 w-full flex items-center justify-center">
@@ -326,10 +326,10 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {/* Detections by Hour (Bar Chart - lg:col-span-4) */}
-        <div className="lg:col-span-4 bg-white border border-[#F4EFE6] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-4 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-center mb-4">
             <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Detections by Hour</h4>
-            <span className="text-[9px] text-[#0C2540] font-black uppercase tracking-wider">All Cameras</span>
+            <span className="text-[9px] text-[#0A2540] font-black uppercase tracking-wider">All Cameras</span>
           </div>
 
           <div className="h-48 w-full text-xs">
@@ -348,7 +348,7 @@ export const ReportsPage: React.FC = () => {
       </div>
 
       {/* Report Summary Table (Screenshot 7 bottom) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative overflow-hidden shadow-sm">
         
         <div className="p-4 border-b border-slate-100 flex justify-between items-center flex-wrap gap-4">
           <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Report Summary</h4>
@@ -356,21 +356,21 @@ export const ReportsPage: React.FC = () => {
 
         <div className="overflow-x-auto scrollbar-thin">
           <table className="min-w-full divide-y divide-slate-100 text-left">
-            <thead className="bg-[#FAF8F5] text-[10px] font-black text-slate-400 uppercase tracking-wider">
+            <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-3.5">Report Name</th>
-                <th className="px-6 py-3.5">Type</th>
-                <th className="px-6 py-3.5">Location</th>
-                <th className="px-6 py-3.5">Date Range</th>
-                <th className="px-6 py-3.5">Generated On</th>
-                <th className="px-6 py-3.5">Summary</th>
-                <th className="px-6 py-3.5 text-center">Actions</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Report Name</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Type</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Location</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Date Range</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Generated On</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Summary</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
               {filteredReports.map((rep) => (
-                <tr key={rep.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4 font-bold text-[#0C2540]">
+                <tr key={rep.id} className="hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 transition-colors duration-200 group border-l-4 border-l-transparent hover:border-l-[#FF9933]">
+                  <td className="px-6 py-4 font-bold text-[#0A2540]">
                     <div className="flex items-center gap-2">
                       <FileText size={16} className="text-slate-400" />
                       <span>{rep.name}</span>
@@ -401,7 +401,7 @@ export const ReportsPage: React.FC = () => {
                     <div className="flex items-center justify-center gap-3">
                       <button
                         onClick={() => handleExport(rep.name)}
-                        className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0C2540]"
+                        className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0A2540]"
                         title="Download File"
                       >
                         <Download size={14} />
@@ -421,12 +421,12 @@ export const ReportsPage: React.FC = () => {
         <div className="px-6 py-4 bg-[#FAF8F5] border-t border-slate-100 flex items-center justify-between flex-wrap gap-4 text-xs font-semibold text-slate-500">
           <span>Showing 1 to {filteredReports.length} of 12 reports</span>
           <div className="flex items-center gap-2">
-            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
+            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 text-slate-400">
               <ChevronLeft size={16} />
             </button>
-            <button className="px-3 py-1 bg-[#0C2540] text-white rounded-lg font-black shadow-sm">1</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">2</button>
-            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
+            <button className="px-3 py-1 bg-[#0A2540] text-white rounded-lg font-black shadow-sm">1</button>
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">2</button>
+            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 text-slate-400">
               <ChevronRight size={16} />
             </button>
           </div>

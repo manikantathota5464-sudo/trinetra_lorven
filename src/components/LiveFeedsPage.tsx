@@ -228,10 +228,10 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Total Live */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Live Cameras</span>
-            <div className="text-xl font-black text-[#0C2540] mt-1">128</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-1">128</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Online across all sectors</span>
           </div>
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
@@ -240,10 +240,10 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         </div>
 
         {/* Online Now */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Online Now</span>
-            <div className="text-xl font-black text-emerald-600 mt-1">104</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-emerald-600 mt-1">104</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">81.2% online capability</span>
           </div>
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
@@ -252,10 +252,10 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         </div>
 
         {/* Live Streams */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Live Streams</span>
-            <div className="text-xl font-black text-amber-600 mt-1">24</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-amber-600 mt-1">24</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Active streaming grids</span>
           </div>
           <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
@@ -264,10 +264,10 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         </div>
 
         {/* Total Views */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Views</span>
-            <div className="text-xl font-black text-purple-600 mt-1">56</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-purple-600 mt-1">56</div>
             <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Active monitors watching</span>
           </div>
           <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
@@ -278,7 +278,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
       </div>
 
       {/* Filter and Control Bar (Screenshot 5) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         {/* Left Inputs */}
         <div className="flex flex-wrap items-center gap-3 flex-1">
@@ -291,14 +291,14 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
               placeholder="Search cameras..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
             />
           </div>
 
           <select
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0C2540] font-semibold"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
           >
             <option>All Locations</option>
             <option>Main St</option>
@@ -308,7 +308,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
             <option>Riverside</option>
           </select>
 
-          <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-600">
+          <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-xs font-semibold text-slate-600">
             <Sliders size={14} />
             <span>Customize View</span>
           </button>
@@ -327,7 +327,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-[#0C2540] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+              <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-[#0A2540] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
             </div>
           </label>
 
@@ -335,21 +335,21 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
           <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
             <button
               onClick={() => setLayout('grid')}
-              className={`p-1.5 rounded ${layout === 'grid' ? 'bg-white text-[#0C2540] shadow-sm' : 'text-slate-500'}`}
+              className={`p-1.5 rounded ${layout === 'grid' ? 'bg-white text-[#0A2540] shadow-sm' : 'text-slate-500'}`}
               title="Grid View"
             >
               <Grid size={14} />
             </button>
             <button
               onClick={() => setLayout('list')}
-              className={`p-1.5 rounded ${layout === 'list' ? 'bg-white text-[#0C2540] shadow-sm' : 'text-slate-500'}`}
+              className={`p-1.5 rounded ${layout === 'list' ? 'bg-white text-[#0A2540] shadow-sm' : 'text-slate-500'}`}
               title="List View"
             >
               <List size={14} />
             </button>
           </div>
 
-          <button className="bg-[#0C2540] hover:bg-[#18385A] text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
+          <button className="bg-[#0A2540] hover:bg-[#18385A] text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
             <Plus size={14} />
             <span>Add Camera</span>
           </button>
@@ -375,7 +375,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         ))}
 
         {filteredCameras.length === 0 && (
-          <div className="col-span-full py-16 bg-white border border-[#F4EFE6] rounded-2xl text-center text-slate-400 font-bold">
+          <div className="col-span-full py-16 bg-white border border-[#E2E8F0] rounded-2xl text-center text-slate-400 font-bold">
             No active cameras found matching criteria.
           </div>
         )}

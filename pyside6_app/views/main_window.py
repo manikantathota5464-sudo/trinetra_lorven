@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         header = QFrame()
         header.setFixedHeight(68)
         header.setObjectName("headerPanel")
-        header.setStyleSheet("background-color: #FAF7F0; border-bottom: 1px solid #EDE5D8;")
+        header.setStyleSheet("background-color: #FFFFFF; border-bottom: 1px solid #E2E8F0;")
         h_layout = QHBoxLayout(header)
         h_layout.setContentsMargins(20, 8, 20, 8)
         h_layout.setSpacing(14)
@@ -57,12 +57,12 @@ class MainWindow(QMainWindow):
         title_box = QVBoxLayout()
         title_box.setSpacing(1)
         govt_lbl = QLabel("भारत सरकार | Government of India")
-        govt_lbl.setStyleSheet("font-size: 10px; font-weight: 600; color: #475569;")
+        govt_lbl.setStyleSheet("font-size: 10px; font-weight: 700; color: #475569;")
         morth_lbl = QLabel("MINISTRY OF ROAD TRANSPORT & HIGHWAYS")
-        morth_lbl.setStyleSheet("font-size: 12px; font-weight: 900; color: #0B213F; letter-spacing: 0.5px;")
+        morth_lbl.setStyleSheet("font-size: 12px; font-weight: 900; color: #0A2540; letter-spacing: 0.5px;")
         
-        self.page_sub_title = QLabel("TRINETHRA | Operations Command Dashboard")
-        self.page_sub_title.setStyleSheet("font-size: 9.5px; font-weight: 800; color: #D97706;")
+        self.page_sub_title = QLabel("TRINETHRA | National AI Surveillance Grid")
+        self.page_sub_title.setStyleSheet("font-size: 9.5px; font-weight: 800; color: #FF9933;")
 
         title_box.addWidget(govt_lbl)
         title_box.addWidget(morth_lbl)
@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
         di_text = QVBoxLayout()
         di_text.setSpacing(0)
         di_t1 = QLabel("Digital India")
-        di_t1.setStyleSheet("font-size: 10px; font-weight: 900; color: #0C2540;")
+        di_t1.setStyleSheet("font-size: 10px; font-weight: 900; color: #0A2540;")
         di_t2 = QLabel("Power To Empower")
         di_t2.setStyleSheet("font-size: 8.5px; font-weight: 600; color: #64748B;")
         di_text.addWidget(di_t1)
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
             btn = QPushButton(txt)
             btn.setFixedSize(26, 22)
             if txt == "A":
-                btn.setStyleSheet("background-color: #0B213F; color: #FFFFFF; border-radius: 4px; font-size: 10px; font-weight: 800;")
+                btn.setStyleSheet("background-color: #0A2540; color: #FFFFFF; border-radius: 4px; font-size: 10px; font-weight: 800;")
             else:
                 btn.setStyleSheet("background-color: #FFFFFF; color: #334155; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 10px; font-weight: 700;")
             h_layout.addWidget(btn)
@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         cl_l.setContentsMargins(4, 2, 4, 2)
         cl_l.setSpacing(0)
         self.time_lbl = QLabel("08:19:23 AM")
-        self.time_lbl.setStyleSheet("font-size: 11px; font-weight: 900; color: #0C2540; font-family: Consolas;")
+        self.time_lbl.setStyleSheet("font-size: 11px; font-weight: 900; color: #0A2540; font-family: Consolas;")
         self.date_lbl = QLabel("Tue, 18 Aug 2026")
         self.date_lbl.setStyleSheet("font-size: 9px; font-weight: 600; color: #64748B;")
         cl_l.addWidget(self.time_lbl)
@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
         # User Profile Menu Button
         self.profile_btn = QPushButton("👤 AU Admin User")
         self.profile_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.profile_btn.setStyleSheet("background-color: #0C2540; color: #FFFFFF; font-weight: 800; font-size: 11px; padding: 6px 12px; border-radius: 6px;")
+        self.profile_btn.setStyleSheet("background-color: #0A2540; color: #FFFFFF; font-weight: 800; font-size: 11px; padding: 6px 12px; border-radius: 6px;")
         self.profile_btn.clicked.connect(self.show_profile_menu)
         h_layout.addWidget(self.profile_btn)
 
@@ -151,7 +151,7 @@ class MainWindow(QMainWindow):
         # ── 2. SYSTEM ALERT MARQUEE TICKER ──
         ticker_bar = QFrame()
         ticker_bar.setFixedHeight(30)
-        ticker_bar.setStyleSheet("background-color: #0B1E33; border-bottom: 1px solid #1E293B;")
+        ticker_bar.setStyleSheet("background-color: #0A2540; border-bottom: 1px solid #06182C;")
         tb_l = QHBoxLayout(ticker_bar)
         tb_l.setContentsMargins(20, 0, 20, 0)
         tb_l.setSpacing(10)

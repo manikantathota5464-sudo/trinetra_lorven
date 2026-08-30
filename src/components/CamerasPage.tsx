@@ -87,69 +87,87 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Total Cameras */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Cameras</span>
-            <div className="text-xl font-black text-[#0C2540] mt-1">{totalCount}</div>
-            <span className="text-[9px] text-emerald-600 font-bold block mt-0.5">Across 128 locations</span>
+        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
+            <Camera size={64} />
           </div>
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
-            <Camera size={20} />
+          <div className="relative z-10">
+            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Total Cameras</span>
+            <div className="text-3xl font-black text-[#0A2540] mt-1 tracking-tight">{totalCount}</div>
+            <span className="text-[10px] text-emerald-600 font-bold block mt-1 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Across 128 locations
+            </span>
+          </div>
+          <div className="p-3 bg-slate-50 border border-slate-100 text-[#0A2540] rounded-xl relative z-10 shadow-sm group-hover:bg-[#0A2540] group-hover:text-white transition-colors duration-300">
+            <Camera size={22} />
           </div>
         </div>
 
         {/* Online Cameras */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Online Cameras</span>
-            <div className="text-xl font-black text-emerald-600 mt-1">{onlineCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">{(onlineCount/totalCount*100).toFixed(1)}% online</span>
+        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-emerald-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
+            <CheckCircle2 size={64} />
           </div>
-          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
-            <CheckCircle2 size={20} />
+          <div className="relative z-10">
+            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Online Cameras</span>
+            <div className="text-3xl font-black text-emerald-600 mt-1 tracking-tight">{onlineCount}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(onlineCount/totalCount*100).toFixed(1)}% online</span>
+          </div>
+          <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl relative z-10 shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+            <CheckCircle2 size={22} />
           </div>
         </div>
 
         {/* Offline Cameras */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Offline Cameras</span>
-            <div className="text-xl font-black text-red-600 mt-1">{offlineCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">{(offlineCount/totalCount*100).toFixed(1)}% offline</span>
+        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-red-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
+            <XCircle size={64} />
           </div>
-          <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
-            <XCircle size={20} />
+          <div className="relative z-10">
+            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Offline Cameras</span>
+            <div className="text-3xl font-black text-red-600 mt-1 tracking-tight">{offlineCount}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(offlineCount/totalCount*100).toFixed(1)}% offline</span>
+          </div>
+          <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl relative z-10 shadow-sm group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
+            <XCircle size={22} />
           </div>
         </div>
 
         {/* Maintenance */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Maintenance</span>
-            <div className="text-xl font-black text-amber-600 mt-1">{maintenanceCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">{(maintenanceCount/totalCount*100).toFixed(1)}% of total</span>
+        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-amber-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
+            <Wrench size={64} />
           </div>
-          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
-            <Wrench size={20} />
+          <div className="relative z-10">
+            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Maintenance</span>
+            <div className="text-3xl font-black text-amber-500 mt-1 tracking-tight">{maintenanceCount}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(maintenanceCount/totalCount*100).toFixed(1)}% of total</span>
+          </div>
+          <div className="p-3 bg-amber-50 border border-amber-100 text-amber-600 rounded-xl relative z-10 shadow-sm group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
+            <Wrench size={22} />
           </div>
         </div>
 
         {/* PTZ Cameras */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">PTZ Cameras</span>
-            <div className="text-xl font-black text-purple-600 mt-1">{ptzCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">{(ptzCount/totalCount*100).toFixed(1)}% of total</span>
+        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-purple-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
+            <Camera size={64} />
           </div>
-          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
-            <Camera size={20} />
+          <div className="relative z-10">
+            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">PTZ Cameras</span>
+            <div className="text-3xl font-black text-purple-600 mt-1 tracking-tight">{ptzCount}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(ptzCount/totalCount*100).toFixed(1)}% of total</span>
+          </div>
+          <div className="p-3 bg-purple-50 border border-purple-100 text-purple-600 rounded-xl relative z-10 shadow-sm group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
+            <Camera size={22} />
           </div>
         </div>
 
       </div>
 
       {/* Search and Filters Segment (Screenshot 3) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         
         {/* Left filters */}
         <div className="flex flex-wrap items-center gap-3 flex-1">
@@ -164,7 +182,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
               placeholder="Search by camera name, location, or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
             />
           </div>
 
@@ -172,7 +190,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0C2540] font-semibold"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
           >
             <option>All Status</option>
             <option>Online</option>
@@ -184,7 +202,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           <select
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0C2540] font-semibold"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
           >
             <option>All Locations</option>
             <option>Main St</option>
@@ -198,7 +216,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0C2540] font-semibold"
+            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
           >
             <option>All Types</option>
             <option>PTZ</option>
@@ -225,7 +243,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           
           <button
             onClick={() => setAddModalOpen(true)}
-            className="bg-[#0C2540] hover:bg-[#18385A] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+            className="bg-[#0A2540] hover:bg-[#18385A] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
           >
             <Plus size={16} />
             <span>Add Camera</span>
@@ -235,28 +253,28 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
       </div>
 
       {/* Grid/Table List Container */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border-2 border-[#0A2540]/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="overflow-x-auto scrollbar-thin">
           <table className="min-w-full divide-y divide-slate-100 text-left">
-            <thead className="bg-[#FAF8F5] text-[10px] font-black text-slate-400 uppercase tracking-wider">
+            <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-3.5 w-10">
-                  <input type="checkbox" className="rounded text-[#0C2540] focus:ring-[#0C2540]" />
+                  <input type="checkbox" className="rounded text-[#FF9933] focus:ring-[#FF9933] border-slate-500" />
                 </th>
-                <th className="px-6 py-3.5">Camera</th>
-                <th className="px-6 py-3.5">Location</th>
-                <th className="px-6 py-3.5">Status</th>
-                <th className="px-6 py-3.5">Type</th>
-                <th className="px-6 py-3.5">Last Seen</th>
-                <th className="px-6 py-3.5">Uptime</th>
-                <th className="px-6 py-3.5 text-center">Actions</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Camera</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Location</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Status</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Type</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Last Seen</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Uptime</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
               {filteredCameras.map((cam) => (
-                <tr key={cam.id} className="hover:bg-slate-50 transition">
+                <tr key={cam.id} className="hover:bg-slate-50 transition-colors duration-200 group border-l-4 border-l-transparent hover:border-l-[#FF9933]">
                   <td className="px-6 py-4">
-                    <input type="checkbox" className="rounded text-[#0C2540] focus:ring-[#0C2540]" />
+                    <input type="checkbox" className="rounded text-[#0A2540] focus:ring-[#0A2540]" />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -339,7 +357,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
             <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
               <ChevronLeft size={16} />
             </button>
-            <button className="px-3 py-1 bg-[#0C2540] text-white rounded-lg font-black shadow-sm">1</button>
+            <button className="px-3 py-1 bg-[#0A2540] text-white rounded-lg font-black shadow-sm">1</button>
             <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">2</button>
             <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">3</button>
             <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">4</button>
@@ -364,7 +382,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
       {addModalOpen && (
         <div className="fixed inset-0 bg-black/55 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
-            <div className="p-4 bg-[#0C2540] text-white font-bold flex justify-between items-center">
+            <div className="p-4 bg-[#0A2540] text-white font-bold flex justify-between items-center">
               <span>Register New Camera Node</span>
               <button onClick={() => setAddModalOpen(false)} className="text-white hover:text-slate-200 font-black text-sm">
                 ✕
@@ -379,7 +397,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
                   placeholder="E.g., CAM-1282"
                   value={newCamId}
                   onChange={(e) => setNewCamId(e.target.value)}
-                  className="w-full border border-slate-200 p-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+                  className="w-full border border-slate-200 p-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
                 />
               </div>
 
@@ -391,7 +409,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
                   placeholder="E.g., Junction 9 - Outer Ring Rd"
                   value={newCamLoc}
                   onChange={(e) => setNewCamLoc(e.target.value)}
-                  className="w-full border border-slate-200 p-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+                  className="w-full border border-slate-200 p-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
                 />
               </div>
 
@@ -432,7 +450,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0C2540] hover:bg-[#18385A] text-white rounded-xl text-xs font-bold shadow-sm"
+                  className="px-4 py-2 bg-[#0A2540] hover:bg-[#18385A] text-white rounded-xl text-xs font-bold shadow-sm"
                 >
                   Register Node
                 </button>

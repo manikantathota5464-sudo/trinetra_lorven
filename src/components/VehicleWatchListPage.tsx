@@ -109,14 +109,34 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
   return (
     <div className="space-y-6">
       
+      {/* VAHAN & NCIC Gateway Header Claim */}
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-5 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4 gov-card-interactive">
+        <div>
+          <div className="flex items-center gap-2 text-[#0A2540] font-black text-xs uppercase tracking-wider mb-1">
+            <Shield size={16} className="text-red-600" />
+            <span>National Vehicle Hotlist &amp; Impound Registry</span>
+          </div>
+          <h2 className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 tracking-tight flex items-center gap-2">
+            <span>VAHAN 4.0 &amp; NCIC / CCTNS Stolen Vehicle Grid</span>
+            <span className="text-[9.5px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+              Live Sync Active
+            </span>
+          </h2>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Automated ANPR camera match-making against the central database of flagged, stolen, cloned, and high-risk impound vehicles.
+          </p>
+        </div>
+      </div>
+
       {/* Metrics Row (Screenshot 9) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Stolen Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
-            <div className="text-xl font-black text-red-600 mt-1">{stolenCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-1">{stolenCount}</div>
             <span className="text-[9px] text-slate-500 font-bold block mt-0.5">Active in watch list</span>
           </div>
           <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
@@ -125,10 +145,10 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
         </div>
 
         {/* Cloned Vehicles */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
-            <div className="text-xl font-black text-purple-600 mt-1">{clonedCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-purple-600 mt-1">{clonedCount}</div>
             <span className="text-[9px] text-slate-500 font-bold block mt-0.5">Active in watch list</span>
           </div>
           <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
@@ -137,10 +157,10 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
         </div>
 
         {/* Total Watch List */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Watch List</span>
-            <div className="text-xl font-black text-[#0C2540] mt-1">{totalCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-1">{totalCount}</div>
             <span className="text-[9px] text-slate-500 font-bold block mt-0.5">All stolen + cloned</span>
           </div>
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
@@ -149,10 +169,10 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
         </div>
 
         {/* Recently Added */}
-        <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Recently Added</span>
-            <div className="text-xl font-black text-emerald-600 mt-1">{recentAddCount}</div>
+            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-emerald-600 mt-1">{recentAddCount}</div>
             <span className="text-[9px] text-slate-500 font-bold block mt-0.5">In last 7 days</span>
           </div>
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
@@ -163,7 +183,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
       </div>
 
       {/* Advanced search and filters (Screenshot 9) */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         {/* Left Inputs */}
         <div className="flex flex-wrap items-center gap-3 flex-1">
@@ -178,7 +198,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
               placeholder="Search by plate, chassis, owner..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
             />
           </div>
 
@@ -232,7 +252,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
             <option>Honda</option>
           </select>
 
-          <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-600">
+          <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-xs font-semibold text-slate-600">
             <Sliders size={14} />
             <span>More Filters</span>
           </button>
@@ -242,7 +262,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={handleExport}
-            className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition"
+            className="p-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-slate-600 transition"
             title="Export CSV"
           >
             <FileSpreadsheet size={14} />
@@ -250,7 +270,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
           
           <button
             onClick={() => setAddModalOpen(true)}
-            className="bg-[#0C2540] hover:bg-[#18385A] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+            className="bg-[#0A2540] hover:bg-[#18385A] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
           >
             <Plus size={16} />
             <span>Add Vehicle</span>
@@ -271,13 +291,13 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3 text-xs font-bold border-b-2 flex items-center gap-2 ${
                   isActive
-                    ? 'border-[#0C2540] text-[#0C2540] font-black'
+                    ? 'border-[#0A2540] text-[#0A2540] font-black'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <span>{tab === 'All' ? 'All Vehicles' : tab + ' Vehicles'}</span>
                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-[#0C2540] text-white' : 'bg-slate-100 text-slate-500'
+                  isActive ? 'bg-[#0A2540] text-white' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {counts}
                 </span>
@@ -288,30 +308,30 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
       </div>
 
       {/* Table Data Grid */}
-      <div className="bg-white border border-[#F4EFE6] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative overflow-hidden shadow-sm">
         <div className="overflow-x-auto scrollbar-thin">
           <table className="min-w-full divide-y divide-slate-100 text-left">
-            <thead className="bg-[#FAF8F5] text-[10px] font-black text-slate-400 uppercase tracking-wider">
+            <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-3.5 w-10">
-                  <input type="checkbox" className="rounded text-[#0C2540] focus:ring-[#0C2540]" />
+                  <input type="checkbox" className="rounded text-[#0A2540] focus:ring-[#0A2540]" />
                 </th>
-                <th className="px-6 py-3.5">Vehicle / Plate</th>
-                <th className="px-6 py-3.5">Watch Type</th>
-                <th className="px-6 py-3.5">Brand / Model</th>
-                <th className="px-6 py-3.5">Color</th>
-                <th className="px-6 py-3.5">Added On</th>
-                <th className="px-6 py-3.5">Added By</th>
-                <th className="px-6 py-3.5">Location Added</th>
-                <th className="px-6 py-3.5">Status</th>
-                <th className="px-6 py-3.5 text-center">Actions</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Vehicle / Plate</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Watch Type</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Brand / Model</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Color</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Added On</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Added By</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Location Added</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50">Status</th>
+                <th className="px-6 py-3.5 border-l border-slate-700/50 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
               {filteredList.map((veh) => (
-                <tr key={veh.id} className="hover:bg-slate-50 transition">
+                <tr key={veh.id} className="hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 transition-colors duration-200 group border-l-4 border-l-transparent hover:border-l-[#FF9933]">
                   <td className="px-6 py-4">
-                    <input type="checkbox" className="rounded text-[#0C2540] focus:ring-[#0C2540]" />
+                    <input type="checkbox" className="rounded text-[#0A2540] focus:ring-[#0A2540]" />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -398,15 +418,15 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
         <div className="px-6 py-4 bg-[#FAF8F5] border-t border-slate-100 flex items-center justify-between flex-wrap gap-4 text-xs font-semibold text-slate-500">
           <span>Showing 1 to {filteredList.length} of {filteredList.length} vehicles</span>
           <div className="flex items-center gap-2">
-            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
+            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 text-slate-400">
               <ChevronLeft size={16} />
             </button>
-            <button className="px-3 py-1 bg-[#0C2540] text-white rounded-lg font-black shadow-sm">1</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">2</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">3</button>
+            <button className="px-3 py-1 bg-[#0A2540] text-white rounded-lg font-black shadow-sm">1</button>
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">2</button>
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">3</button>
             <span>...</span>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">55</button>
-            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
+            <button className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300">55</button>
+            <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 text-slate-400">
               <ChevronRight size={16} />
             </button>
           </div>
@@ -418,7 +438,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
       {addModalOpen && (
         <div className="fixed inset-0 bg-black/55 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
-            <div className="p-4 bg-[#0C2540] text-white font-bold flex justify-between items-center">
+            <div className="p-4 bg-[#0A2540] text-white font-bold flex justify-between items-center">
               <span>Add Vehicle to Watch List</span>
               <button onClick={() => setAddModalOpen(false)} className="text-white hover:text-slate-200 font-black text-sm">
                 ✕
@@ -433,7 +453,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
                   placeholder="E.g., AP09 AB 1234"
                   value={newPlate}
                   onChange={(e) => setNewPlate(e.target.value)}
-                  className="w-full border border-slate-200 p-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0C2540]"
+                  className="w-full border border-slate-200 p-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
                 />
               </div>
 
@@ -448,7 +468,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
                       className={`flex-1 py-2 rounded-xl text-xs font-bold border uppercase transition ${
                         newType === type
                           ? type === 'Stolen' ? 'bg-red-50 border-red-500 text-red-700 ring-1 ring-red-500' : 'bg-purple-50 border-purple-500 text-purple-700 ring-1 ring-purple-500'
-                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300'
                       }`}
                     >
                       {type}
@@ -497,7 +517,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold"
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-xs font-bold"
                 >
                   Cancel
                 </button>

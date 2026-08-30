@@ -1,30 +1,151 @@
 @import "tailwindcss";
 
 @theme {
-  --color-trinethra-navy: #0C2540;
-  --color-trinethra-navyLight: #18385A;
-  --color-trinethra-cream: #FAF8F5;
-  --color-trinethra-creamDark: #F4EFE6;
-  --color-trinethra-accent: #0C2540;
+  --color-gov-navy: #0A2540;
+  --color-gov-navy-dark: #06182C;
+  --color-gov-navy-light: #163E66;
+  --color-gov-saffron: #FF9933;
+  --color-gov-saffron-dark: #E67E00;
+  --color-gov-green: #138808;
+  --color-gov-green-dark: #0D6605;
+  --color-gov-gold: #C59B27;
+  --color-gov-gold-light: #F4E8C1;
+  --color-gov-cream: #FAF8F5;
+  --color-gov-card: #FFFFFF;
+  --color-gov-border: #E2E8F0;
+  --color-gov-border-subtle: #EDE5D8;
 }
 
 body {
-  background-color: #FAF8F5;
-  color: #1e293b;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #F8FAFC;
+  color: #1E293B;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom styles for scrollbars and overlays */
+/* National Flag Tiranga Strip */
+.tiranga-strip {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    #FF9933 0%,
+    #FF9933 33.33%,
+    #FFFFFF 33.33%,
+    #FFFFFF 66.66%,
+    #138808 66.66%,
+    #138808 100%
+  );
+}
+
+.tiranga-strip-sm {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    #FF9933 0%,
+    #FF9933 33.33%,
+    #FFFFFF 33.33%,
+    #FFFFFF 66.66%,
+    #138808 66.66%,
+    #138808 100%
+  );
+}
+
+/* Subtle Government Guilloche Security Grid Pattern */
+.gov-bg-pattern {
+  background-color: #F8FAFC;
+  background-image: radial-gradient(#CBD5E1 0.75px, transparent 0.75px);
+  background-size: 20px 20px;
+}
+
+/* Authentic Government Watermark */
+.gov-watermark-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.gov-watermark-overlay img {
+  width: 520px;
+  max-width: 80vw;
+  opacity: 0.032;
+  filter: grayscale(100%) blur(0.6px);
+  user-select: none;
+}
+
+/* Modern Government Card & Smooth Micro-transitions */
+.gov-card-interactive {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gov-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -4px rgba(10, 37, 64, 0.08), 0 4px 10px -2px rgba(10, 37, 64, 0.04);
+}
+
+/* Official Government Card Shadow */
+.gov-card-shadow {
+  box-shadow: 0 4px 20px -2px rgba(10, 37, 64, 0.06), 0 2px 6px -1px rgba(10, 37, 64, 0.04);
+}
+
+.gov-card-shadow-lg {
+  box-shadow: 0 12px 32px -4px rgba(10, 37, 64, 0.12), 0 4px 12px -2px rgba(10, 37, 64, 0.06);
+}
+
+/* Custom Scrollbars */
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F1EBE1;
+  border-radius: 3px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
+  background-color: #CBD5E1;
   border-radius: 3px;
+  transition: background-color 0.2s ease;
 }
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #0A2540;
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 28s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Pulse Beacon */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.35); opacity: 0.2; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.animate-beacon {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
