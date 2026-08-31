@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backend": "python -m uvicorn backend.app.main:app --port 8000",
+    "app": "run_desktop_app.bat"
   },
   "dependencies": {
     "lucide-react": "^1.35.0",

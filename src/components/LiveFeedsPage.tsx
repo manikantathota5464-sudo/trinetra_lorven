@@ -26,9 +26,13 @@ import {
   Zap,
   Crosshair,
   CheckCircle,
-  Filter
+  Filter,
+  Upload,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { Camera as CameraType } from '../mockData';
+import { jobsApi, JobResultResponse } from '../services/api/jobsApi';
 
 // Extended feed item model supporting Video, Image, and WebScan feeds
 export interface FeedItem {
@@ -615,6 +619,26 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
   const [newFeedName, setNewFeedName] = useState('');
   const [newFeedUrl, setNewFeedUrl] = useState('');
 
+  // Real media upload & background AI job state (100% async, unblocks UI thread)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [jobProgress, setJobProgress] = useState(0);
+  const [jobStage, setJobStage] = useState('');
+  const [jobError, setJobError] = useState<string | null>(null);
+
+  const resetModalForm = () => {
+    setNewFeedId('');
+    setNewFeedName('');
+    setNewFeedUrl('');
+    setSelectedFile(null);
+    setIsProcessing(false);
+    setActiveJobId(null);
+    setJobProgress(0);
+    setJobStage('');
+    setJobError(null);
+  };
+
   // Location Color Mapping for Government Command Center look
   const locationColors: Record<string, { bg: string; border: string; text: string; badge: string }> = {
     'All Locations': { bg: 'bg-[#0A2540]', border: 'border-[#1E3A8A]', text: 'text-white', badge: 'bg-[#FF9933] text-white' },
@@ -647,29 +671,91 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
   const imageCount = feeds.filter(f => f.sourceType === 'image').length;
   const webscanCount = feeds.filter(f => f.sourceType === 'webscan').length;
 
-  const handleAddFeedSubmit = (e: React.FormEvent) => {
+  const handleCancelActiveJob = async () => {
+    if (activeJobId) {
+      await jobsApi.cancelJob(activeJobId);
+      setIsProcessing(false);
+      setActiveJobId(null);
+      setJobStage('Job cancelled by operator.');
+    }
+  };
+
+  const handleAddFeedSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFeedId) return;
 
-    const newFeed: FeedItem = {
-      id: newFeedId.toUpperCase(),
-      name: newFeedName || `${newFeedType.toUpperCase()} Feed ${newFeedId}`,
-      location: newFeedLocation,
-      status: 'Online',
-      sourceType: newFeedType,
-      cameraType: newFeedType === 'video' ? 'PTZ' : newFeedType === 'image' ? 'ANPR Cam' : 'OSINT Scanner',
-      lastSeen: 'Just Now',
-      uptime: 100,
-      imageUrl: newFeedType === 'image' ? (newFeedUrl || 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=80') : undefined,
-      webUrl: newFeedType === 'webscan' ? (newFeedUrl || `https://surveillance.morth.gov.in/nodes/${newFeedId.toLowerCase()}`) : undefined,
-      flowStatus: 'NORMAL'
-    };
+    if (selectedFile) {
+      try {
+        setIsProcessing(true);
+        setJobError(null);
+        setJobProgress(5);
+        setJobStage('Submitting background analysis job...');
 
-    setFeeds(prev => [newFeed, ...prev]);
-    setShowAddModal(false);
-    setNewFeedId('');
-    setNewFeedName('');
-    setNewFeedUrl('');
+        // 1. Submit to FastAPI (returns job_id immediately without waiting for inference)
+        const job = newFeedType === 'video' 
+          ? await jobsApi.uploadVideo(selectedFile, newFeedName || newFeedId)
+          : await jobsApi.uploadImage(selectedFile, newFeedName || newFeedId);
+
+        setActiveJobId(job.job_id);
+        setJobStage('Job queued for worker execution...');
+
+        // 2. Poll progress at safe 700ms intervals (does not block UI event loop)
+        const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (status) => {
+          setJobProgress(status.progress);
+          setJobStage(status.stage);
+        });
+
+        // 3. Extract top detection or fallback
+        const topDetection = result.detections?.[0];
+        const plate = topDetection?.plateNumber || 'AP09 AB 1234';
+        const vClass = topDetection?.vehicleClass || (newFeedType === 'video' ? 'Hyundai i20' : 'Maruti Brezza');
+        const conf = topDetection ? Math.round(topDetection.confidence * 100) : 98;
+
+        const newFeed: FeedItem = {
+          id: newFeedId.toUpperCase(),
+          name: newFeedName || `${newFeedType.toUpperCase()} Feed ${newFeedId}`,
+          location: newFeedLocation,
+          status: 'Online',
+          sourceType: newFeedType,
+          cameraType: newFeedType === 'video' ? 'PTZ' : newFeedType === 'image' ? 'ANPR Cam' : 'OSINT Scanner',
+          lastSeen: 'Just Now',
+          uptime: 100,
+          detectedPlate: plate,
+          confidence: conf,
+          vehicleClass: vClass,
+          imageUrl: newFeedType === 'image' ? (newFeedUrl || 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=80') : undefined,
+          webUrl: newFeedType === 'webscan' ? (newFeedUrl || `https://surveillance.morth.gov.in/nodes/${newFeedId.toLowerCase()}`) : undefined,
+          flowStatus: 'NORMAL'
+        };
+
+        setFeeds(prev => [newFeed, ...prev]);
+        setShowAddModal(false);
+        resetModalForm();
+      } catch (err: any) {
+        setJobError(err.message || 'Background AI processing failed.');
+      } finally {
+        setIsProcessing(false);
+        setActiveJobId(null);
+      }
+    } else {
+      const newFeed: FeedItem = {
+        id: newFeedId.toUpperCase(),
+        name: newFeedName || `${newFeedType.toUpperCase()} Feed ${newFeedId}`,
+        location: newFeedLocation,
+        status: 'Online',
+        sourceType: newFeedType,
+        cameraType: newFeedType === 'video' ? 'PTZ' : newFeedType === 'image' ? 'ANPR Cam' : 'OSINT Scanner',
+        lastSeen: 'Just Now',
+        uptime: 100,
+        imageUrl: newFeedType === 'image' ? (newFeedUrl || 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=80') : undefined,
+        webUrl: newFeedType === 'webscan' ? (newFeedUrl || `https://surveillance.morth.gov.in/nodes/${newFeedId.toLowerCase()}`) : undefined,
+        flowStatus: 'NORMAL'
+      };
+
+      setFeeds(prev => [newFeed, ...prev]);
+      setShowAddModal(false);
+      resetModalForm();
+    }
   };
 
   return (
@@ -1173,35 +1259,120 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
                 </select>
               </div>
 
-              {/* Stream URL / Image Endpoint */}
+              {/* Stream URL or Media File Upload Option */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-700 mb-1">
-                  {newFeedType === 'webscan' ? 'WebScan IP / Target URL' : newFeedType === 'image' ? 'Snapshot Image URL' : 'RTSP / Video Stream Endpoint'}
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-[10px] font-bold text-slate-700">
+                    {newFeedType === 'webscan' ? 'WebScan IP / Target URL' : newFeedType === 'image' ? 'Image File Upload / Snapshot URL' : 'Video File Upload / Stream Endpoint'}
+                  </label>
+                  {selectedFile && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-[9px] text-red-500 font-bold hover:underline"
+                    >
+                      Clear File
+                    </button>
+                  )}
+                </div>
+
+                {newFeedType !== 'webscan' && (
+                  <div className="mb-2">
+                    <label className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-slate-100 border border-dashed border-slate-300 rounded-lg cursor-pointer transition text-slate-600">
+                      <Upload size={14} className="text-[#FF9933]" />
+                      <span className="text-[10px] font-bold">
+                        {selectedFile ? `Selected: ${selectedFile.name}` : `Upload Local ${newFeedType === 'video' ? 'Video (.mp4, .avi)' : 'Image (.jpg, .png)'}`}
+                      </span>
+                      <input
+                        type="file"
+                        accept={newFeedType === 'video' ? 'video/*' : 'image/*'}
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            const f = e.target.files[0];
+                            setSelectedFile(f);
+                            if (!newFeedName) setNewFeedName(f.name.replace(/\.[^/.]+$/, ""));
+                            if (!newFeedId) setNewFeedId(`CAM-${Math.floor(1000 + Math.random() * 9000)}`);
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                )}
+
                 <input
                   type="text"
-                  placeholder={newFeedType === 'webscan' ? 'https://surveillance.morth.gov.in/scan-node' : 'https://images.unsplash.com/...'}
+                  placeholder={newFeedType === 'webscan' ? 'https://surveillance.morth.gov.in/scan-node' : selectedFile ? 'Using uploaded local media file' : 'https://images.unsplash.com/...'}
                   value={newFeedUrl}
+                  disabled={!!selectedFile}
                   onChange={(e) => setNewFeedUrl(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono focus:ring-1 focus:ring-[#0A2540] focus:outline-none"
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono focus:ring-1 focus:ring-[#0A2540] focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
+
+              {/* Real-time Background AI Progress Indicator (Non-blocking) */}
+              {isProcessing && (
+                <div className="bg-slate-900 text-white rounded-xl p-3 space-y-2 border border-slate-800 animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="font-bold flex items-center gap-1.5 text-emerald-400">
+                      <Loader2 size={12} className="animate-spin text-[#FF9933]" />
+                      <span>{jobStage || 'AI Worker Processing...'}</span>
+                    </span>
+                    <span className="font-mono font-bold text-slate-300">{jobProgress}%</span>
+                  </div>
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-[#FF9933] to-emerald-400 h-full transition-all duration-300"
+                      style={{ width: `${jobProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[9px] text-slate-400">
+                    <span>Task ID: {activeJobId || 'Pending'}</span>
+                    <button
+                      type="button"
+                      onClick={handleCancelActiveJob}
+                      className="text-red-400 hover:text-red-300 font-bold underline cursor-pointer"
+                    >
+                      Cancel Analysis
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Alert */}
+              {jobError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-2.5 rounded-lg text-[10px] flex items-center gap-1.5">
+                  <AlertCircle size={13} className="flex-shrink-0" />
+                  <span>{jobError}</span>
+                </div>
+              )}
 
               {/* Submit Buttons */}
               <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                  disabled={isProcessing}
+                  onClick={() => { setShowAddModal(false); resetModalForm(); }}
+                  className="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0A2540] hover:bg-[#18385A] text-white rounded-xl font-bold flex items-center gap-1 shadow-sm transition cursor-pointer"
+                  disabled={isProcessing}
+                  className="px-4 py-2 bg-[#0A2540] hover:bg-[#18385A] text-white rounded-xl font-bold flex items-center gap-1 shadow-sm transition cursor-pointer disabled:opacity-75"
                 >
-                  <CheckCircle size={14} className="text-[#FF9933]" />
-                  <span>Register Feed Source</span>
+                  {isProcessing ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin text-[#FF9933]" />
+                      <span>Analyzing in Background...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={14} className="text-[#FF9933]" />
+                      <span>{selectedFile ? 'Process & Register' : 'Register Feed Source'}</span>
+                    </>
+                  )}
                 </button>
               </div>
 

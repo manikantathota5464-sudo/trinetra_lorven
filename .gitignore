@@ -28,3 +28,21 @@ build/
 __pycache__/
 *.pyc
 *.spec
+.pytest_cache/
+*.egg-info/
+
+# Backend temporary files & uploads
+backend_uploads/
+backend_results/
+backend/**/__pycache__/
+*.mp4
+*.avi
+
+# Large Model Weights & Clones (exceeding GitHub 100MB file limit)
+models/**/weights/*.pt
+models/**/models/*.pt
+models/**/*.safetensors
+models/**/.cache/
+models/**/.git/
+models/**/PaddleOCR/
+

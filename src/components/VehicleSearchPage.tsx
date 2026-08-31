@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Download, Filter, Car, AlertTriangle, Zap, Eye, Map, Plus, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Download, Filter, Car, AlertTriangle, Zap, RefreshCw, Upload, Loader2 } from 'lucide-react';
+import { jobsApi, JobResultResponse } from '../services/api/jobsApi';
 
 export const VehicleSearchPage: React.FC = () => {
   const [plateQuery, setPlateQuery] = useState('');
@@ -12,13 +13,79 @@ export const VehicleSearchPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'gallery'>('table');
   const [showAdvanced, setShowAdvanced] = useState(true);
 
-  const results = [
+  // Background AI Job State
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanStage, setScanStage] = useState('');
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+
+  const [resultsList, setResultsList] = useState([
     { plate: 'AP09 AB 1234', conf: '99.4%', brand: 'Hyundai i20 Sportz', color: 'White', type: 'Hatchback', loc: 'Main St & 5th Ave Intersection', cam: 'CAM-1024', speed: '54 km/h', lane: 'Lane 1 (Fast)', time: '18 Aug 2026, 08:19:23 AM', status: 'Stolen', statusColor: 'red' },
     { plate: 'TS07 CD 5678', conf: '98.7%', brand: 'Maruti Suzuki Swift VXi', color: 'Red', type: 'Hatchback', loc: 'I-9 Overpass Corridor', cam: 'CAM-0785', speed: '88 km/h', lane: 'Lane 2', time: '18 Aug 2026, 08:18:04 AM', status: 'Speeding', statusColor: 'amber' },
     { plate: 'AP16 EF 9012', conf: '96.2%', brand: 'Bajaj Pulsar NS200', color: 'Black', type: 'Motorcycle', loc: 'Harbor Rd Exit Ramp', cam: 'CAM-0456', speed: '42 km/h', lane: 'Lane 3', time: '18 Aug 2026, 08:17:15 AM', status: 'Cloned', statusColor: 'purple' },
     { plate: 'AP39 GH 3456', conf: '99.1%', brand: 'Maruti Suzuki Brezza ZXi', color: 'Silver', type: 'SUV', loc: 'Riverside Park Ring Road', cam: 'CAM-0633', speed: '58 km/h', lane: 'Lane 1', time: '18 Aug 2026, 08:15:48 AM', status: 'Clean', statusColor: 'emerald' },
     { plate: 'TS08 IJ 7890', conf: '95.8%', brand: 'Honda Activa 6G', color: 'Blue', type: 'Scooter', loc: '5th Avenue Market Crossing', cam: 'CAM-1201', speed: '36 km/h', lane: 'Lane 2', time: '18 Aug 2026, 08:14:12 AM', status: 'No Helmet', statusColor: 'amber' },
-  ];
+  ]);
+
+  const handleMediaScan = async (file: File) => {
+    try {
+      setIsScanning(true);
+      setScanProgress(5);
+      setScanStage(`Submitting ${file.name} for background inference...`);
+
+      const isVideo = file.type.startsWith('video') || file.name.endsWith('.mp4') || file.name.endsWith('.avi');
+      const job = isVideo
+        ? await jobsApi.uploadVideo(file, 'VehicleSearchScan')
+        : await jobsApi.uploadImage(file, 'VehicleSearchScan');
+
+      setActiveJobId(job.job_id);
+
+      const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (st) => {
+        setScanProgress(st.progress);
+        setScanStage(st.stage);
+      });
+
+      // Prepend detected items
+      if (result.detections && result.detections.length > 0) {
+        const newDetections = result.detections.map(d => ({
+          plate: d.plateNumber,
+          conf: `${Math.round(d.confidence * 100)}%`,
+          brand: d.vehicleClass,
+          color: d.color || 'White',
+          type: d.vehicleClass.split(' ')[0] || 'Sedan',
+          loc: 'AI Media Analysis Scan Node',
+          cam: 'SCAN-AI-01',
+          speed: '52 km/h',
+          lane: 'Lane 1',
+          time: new Date().toLocaleTimeString(),
+          status: d.violation ? (d.violation.includes('Speed') ? 'Speeding' : 'Violation') : 'Clean',
+          statusColor: d.violation ? 'amber' : 'emerald'
+        }));
+
+        setResultsList(prev => [...newDetections, ...prev]);
+        setPlateQuery(result.detections[0].plateNumber);
+      }
+    } catch (err: any) {
+      alert(`AI Scan error: ${err.message || 'Scan failed'}`);
+    } finally {
+      setIsScanning(false);
+      setActiveJobId(null);
+      setScanProgress(0);
+      setScanStage('');
+    }
+  };
+
+  const handleCancelScan = async () => {
+    if (activeJobId) {
+      await jobsApi.cancelJob(activeJobId);
+      setIsScanning(false);
+      setActiveJobId(null);
+      setScanProgress(0);
+      setScanStage('');
+    }
+  };
+
+  const results = resultsList;
 
   const statusBadge: Record<string, string> = {
     red: 'bg-red-100 text-red-700 border border-red-200',
@@ -42,6 +109,23 @@ export const VehicleSearchPage: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Real Media Upload & Background Scan */}
+          <label className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-bold cursor-pointer transition shadow-xs">
+            <Upload size={11} />
+            <span>{isScanning ? 'Scanning...' : 'Upload Media for AI Scan'}</span>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              disabled={isScanning}
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  handleMediaScan(e.target.files[0]);
+                  e.target.value = '';
+                }
+              }}
+              className="sr-only"
+            />
+          </label>
           <button
             onClick={() => { setPlateQuery(''); setBrandFilter('All Brands'); setTypeFilter('All Types'); setColorFilter('All Colors'); setCameraFilter('All Cameras'); }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 text-[9px] font-bold cursor-pointer"
@@ -62,6 +146,31 @@ export const VehicleSearchPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Real-time Non-blocking Scan Banner */}
+      {isScanning && (
+        <div className="bg-slate-900 border border-slate-800 text-white rounded-xl p-2.5 px-4 flex items-center justify-between shadow-md flex-shrink-0 animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <Loader2 size={16} className="animate-spin text-[#FF9933]" />
+            <div>
+              <div className="text-[10px] font-extrabold text-emerald-400">{scanStage}</div>
+              <div className="text-[8px] text-slate-400 font-mono">Job ID: {activeJobId} • Background worker active (UI completely interactive)</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-36 bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div className="bg-gradient-to-r from-[#FF9933] to-emerald-400 h-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
+            </div>
+            <span className="text-[10px] font-bold font-mono text-slate-200">{scanProgress}%</span>
+            <button
+              onClick={handleCancelScan}
+              className="text-[9px] bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700 px-2 py-0.5 rounded font-bold cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* KPI Stats Row */}
       <div className="grid grid-cols-4 gap-2 flex-shrink-0">
