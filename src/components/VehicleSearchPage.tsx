@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Download, Filter, Car, AlertTriangle, Zap, RefreshCw, Upload, Loader2 } from 'lucide-react';
+import { Search, Download, Filter, Car, AlertTriangle, Zap, RefreshCw, Upload, Loader2, Eye, MapPin, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { jobsApi, JobResultResponse } from '../services/api/jobsApi';
 
 export const VehicleSearchPage: React.FC = () => {
@@ -353,7 +353,7 @@ export const VehicleSearchPage: React.FC = () => {
                   <td className="px-3 py-2.5 text-center">
                     <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button className="text-slate-400 hover:text-blue-600 cursor-pointer"><Eye size={13} /></button>
-                      <button className="text-slate-400 hover:text-emerald-600 cursor-pointer"><Map size={13} /></button>
+                      <button className="text-slate-400 hover:text-emerald-600 cursor-pointer"><MapPin size={13} /></button>
                       <button className="text-slate-400 hover:text-amber-600 cursor-pointer"><Plus size={13} /></button>
                     </div>
                   </td>

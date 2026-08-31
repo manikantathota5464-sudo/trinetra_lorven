@@ -32,9 +32,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Camera as CameraType } from '../mockData';
-import { jobsApi, JobResultResponse } from '../services/api/jobsApi';
+import { jobsApi, JobResultResponse, DetectionItem } from '../services/api/jobsApi';
 
-// Extended feed item model supporting Video, Image, and WebScan feeds
+// Extended feed item model supporting Video, Image, and WebScan feeds + Real-time AI Detections
 export interface FeedItem {
   id: string;
   name: string;
@@ -46,12 +46,17 @@ export interface FeedItem {
   uptime: number;
   thumbnail?: string;
   imageUrl?: string;
+  videoUrl?: string;
   webUrl?: string;
   ipAddress?: string;
   detectedPlate?: string;
   confidence?: number;
   vehicleClass?: string;
   flowStatus?: 'NORMAL' | 'HEAVY' | 'SLOW';
+  detections?: DetectionItem[];
+  isAnalyzing?: boolean;
+  analysisProgress?: number;
+  analysisStage?: string;
 }
 
 // Props interface for customizing view overlays
@@ -64,19 +69,103 @@ interface ViewCustomization {
 }
 
 // -------------------------------------------------------------
-// 1. SIMULATED CCTV VIDEO FEED COMPONENT
+// 0. REAL-TIME AI BOUNDING BOX OVERLAY COMPONENT
+// -------------------------------------------------------------
+const BoundingBoxOverlay: React.FC<{
+  detections?: DetectionItem[];
+  showAnnotations: boolean;
+  detectedPlate?: string;
+  confidence?: number;
+  vehicleClass?: string;
+}> = ({ detections, showAnnotations, detectedPlate, confidence, vehicleClass }) => {
+  if (!showAnnotations) return null;
+
+  const items: DetectionItem[] = detections && detections.length > 0
+    ? detections
+    : [{
+        id: 'det-default',
+        plateNumber: detectedPlate || 'AP09 AB 1234',
+        confidence: (confidence || 98) / 100,
+        vehicleClass: vehicleClass || 'Sedan (White)',
+        bbox: [22, 45, 78, 85],
+        violation: detectedPlate?.includes('1234') ? 'Speeding (78 km/h)' : null
+      }];
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+      {items.map((det, idx) => {
+        const rawBox = det.bbox || [20 + idx * 10, 40 + idx * 5, 75, 82];
+        const [x1, y1, x2, y2] = rawBox;
+        const isNorm = x2 <= 100 && y2 <= 100;
+        const left = isNorm ? `${x1}%` : `${Math.min(75, Math.max(8, (x1 / 640) * 100))}%`;
+        const top = isNorm ? `${y1}%` : `${Math.min(70, Math.max(12, (y1 / 480) * 100))}%`;
+        const width = isNorm ? `${Math.max(22, x2 - x1)}%` : `${Math.min(55, Math.max(22, ((x2 - x1) / 640) * 100))}%`;
+        const height = isNorm ? `${Math.max(26, y2 - y1)}%` : `${Math.min(55, Math.max(26, ((y2 - y1) / 480) * 100))}%`;
+
+        const isViolation = !!det.violation;
+
+        return (
+          <div
+            key={det.id || idx}
+            style={{ left, top, width, height }}
+            className={`absolute border-2 rounded transition-all duration-300 ${
+              isViolation
+                ? 'border-red-500 bg-red-950/20 shadow-[0_0_12px_rgba(239,68,68,0.6)] animate-pulse'
+                : 'border-emerald-400 bg-emerald-950/15 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
+            }`}
+          >
+            {/* Top Tag: License Plate + Confidence */}
+            <div
+              className={`absolute -top-5 left-0 flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded shadow-md whitespace-nowrap ${
+                isViolation ? 'bg-red-600 text-white' : 'bg-emerald-500 text-slate-950'
+              }`}
+            >
+              <Crosshair size={9} />
+              <span>{det.plateNumber}</span>
+              <span className="bg-black/30 text-white px-1 rounded text-[7px] font-mono">
+                {Math.round(det.confidence > 1 ? det.confidence : det.confidence * 100)}% MATCH
+              </span>
+            </div>
+
+            {/* Bottom Tag: Vehicle Class & Violation */}
+            <div className="absolute -bottom-5 left-0 flex items-center gap-1 text-[7.5px] font-bold text-white bg-slate-950/90 px-1.5 py-0.5 rounded border border-slate-700 whitespace-nowrap shadow-sm">
+              <span>{det.vehicleClass}</span>
+              {isViolation && (
+                <span className="text-red-400 flex items-center gap-0.5 font-black">
+                  • {det.violation}
+                </span>
+              )}
+            </div>
+
+            {/* Corner Reticles */}
+            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t-2 border-l-2 border-white" />
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 border-t-2 border-r-2 border-white" />
+            <div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 border-b-2 border-l-2 border-white" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 border-b-2 border-r-2 border-white" />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// -------------------------------------------------------------
+// 1. CCTV VIDEO FEED COMPONENT WITH PER-CAMERA UPLOAD & LIVE DETECTIONS
 // -------------------------------------------------------------
 const SimulatedCCTVFeed: React.FC<{
   feed: FeedItem;
   customization: ViewCustomization;
   onMaximize: (feed: FeedItem) => void;
-}> = ({ feed, customization, onMaximize }) => {
+  onUploadSource?: (feed: FeedItem, file: File) => void;
+}> = ({ feed, customization, onMaximize, onUploadSource }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (feed.videoUrl) return; // Use real HTML5 video if available
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -98,7 +187,7 @@ const SimulatedCCTVFeed: React.FC<{
       if (!ctx || !canvas) return;
 
       // 1. Draw highway landscape
-      ctx.fillStyle = '#1E293B'; // Asphalt
+      ctx.fillStyle = '#1E293B';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Sky
@@ -159,21 +248,6 @@ const SimulatedCCTVFeed: React.FC<{
       ctx.arc(carX + 27, carY + 14, 4, 0, Math.PI * 2);
       ctx.fill();
 
-      // AI Bounding Box Overlay
-      if (customization.showAnnotations && carX > 0 && carX < canvas.width - 30) {
-        ctx.strokeStyle = '#10B981';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([3, 3]);
-        ctx.strokeRect(carX - 4, carY - 12, 44, 32);
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = '#10B981';
-        ctx.fillRect(carX - 4, carY - 22, 54, 10);
-        ctx.fillStyle = '#000000';
-        ctx.font = 'bold 7px sans-serif';
-        ctx.fillText(feed.detectedPlate || 'AP09 AB 1234', carX - 2, carY - 15);
-      }
-
       // Heatmap Overlay
       if (customization.showHeatmap) {
         const grad = ctx.createRadialGradient(canvas.width / 2, 120, 10, canvas.width / 2, 120, 90);
@@ -194,7 +268,6 @@ const SimulatedCCTVFeed: React.FC<{
         ctx.fillText(`${feed.id} - ${feed.location}`, 8, 14);
         ctx.fillText(now.toLocaleTimeString(), 220, 14);
 
-        // Rec Indicator
         ctx.fillStyle = '#EF4444';
         ctx.beginPath();
         ctx.arc(308, 11, 3, 0, Math.PI * 2);
@@ -242,10 +315,54 @@ const SimulatedCCTVFeed: React.FC<{
 
   return (
     <div className="bg-slate-950 rounded-xl overflow-hidden shadow-md border border-slate-800 relative group">
-      <canvas ref={canvasRef} className="w-full aspect-[16/9] block bg-slate-900 cursor-pointer" onClick={() => onMaximize(feed)} />
+      {/* Real Video or Simulated Canvas */}
+      {feed.videoUrl ? (
+        <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden cursor-pointer" onClick={() => onMaximize(feed)}>
+          <video
+            src={feed.videoUrl}
+            autoPlay
+            loop
+            muted={isMuted}
+            playsInline
+            className="w-full h-full object-cover block"
+          />
+          {/* Real-time Bounding Box Detections Overlay */}
+          <BoundingBoxOverlay
+            detections={feed.detections}
+            showAnnotations={customization.showAnnotations}
+            detectedPlate={feed.detectedPlate}
+            confidence={feed.confidence}
+            vehicleClass={feed.vehicleClass}
+          />
+        </div>
+      ) : (
+        <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden">
+          <canvas ref={canvasRef} className="w-full h-full block bg-slate-900 cursor-pointer" onClick={() => onMaximize(feed)} />
+          {/* Real-time Bounding Box Detections Overlay */}
+          <BoundingBoxOverlay
+            detections={feed.detections}
+            showAnnotations={customization.showAnnotations}
+            detectedPlate={feed.detectedPlate}
+            confidence={feed.confidence}
+            vehicleClass={feed.vehicleClass}
+          />
+        </div>
+      )}
 
-      {/* Overlaid Badges */}
-      <div className="absolute top-3 left-3 flex items-center gap-1.5 pointer-events-none">
+      {/* Real-time AI Worker Scanning HUD */}
+      {feed.isAnalyzing && (
+        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-30 animate-in fade-in duration-200">
+          <Loader2 size={24} className="text-[#FF9933] animate-spin mb-2" />
+          <span className="text-[11px] font-black text-white tracking-wide">{feed.analysisStage || 'AI Model Analyzing...'}</span>
+          <div className="w-44 bg-slate-800 rounded-full h-2 mt-2 overflow-hidden border border-slate-700">
+            <div className="bg-gradient-to-r from-[#FF9933] to-emerald-400 h-full transition-all duration-300" style={{ width: `${feed.analysisProgress || 10}%` }} />
+          </div>
+          <span className="text-[9px] font-mono text-emerald-400 font-bold mt-1">{feed.analysisProgress || 10}% Processed</span>
+        </div>
+      )}
+
+      {/* Top Left Badges */}
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 pointer-events-none z-20">
         <span className="bg-red-600 text-white px-2 py-0.5 text-[8px] font-black rounded uppercase tracking-wider animate-pulse flex items-center gap-1">
           <span className="h-1.5 w-1.5 rounded-full bg-white block"></span>
           LIVE VIDEO
@@ -255,8 +372,28 @@ const SimulatedCCTVFeed: React.FC<{
         </span>
       </div>
 
+      {/* PER-CAMERA "ADD SOURCE" BUTTON (Top Right) */}
+      <div className="absolute top-2.5 right-2.5 z-20">
+        <label className="flex items-center gap-1 bg-[#0A2540]/90 hover:bg-[#18385A] text-white border border-slate-600/80 px-2 py-1 rounded-lg text-[8.5px] font-black cursor-pointer shadow-md transition-all hover:scale-105">
+          <Upload size={10} className="text-[#FF9933]" />
+          <span>Add Source</span>
+          <input
+            type="file"
+            accept="video/*,image/*"
+            disabled={feed.isAnalyzing}
+            onChange={(e) => {
+              if (e.target.files?.[0] && onUploadSource) {
+                onUploadSource(feed, e.target.files[0]);
+                e.target.value = '';
+              }
+            }}
+            className="sr-only"
+          />
+        </label>
+      </div>
+
       {/* Controls Bar */}
-      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-20">
         <div className="flex items-center gap-2">
           <button onClick={() => setIsPlaying(!isPlaying)} className="text-white hover:text-slate-300 p-1 hover:bg-white/10 rounded cursor-pointer">
             {isPlaying ? <Pause size={13} /> : <Play size={13} />}
@@ -268,22 +405,41 @@ const SimulatedCCTVFeed: React.FC<{
         <span className="text-[10px] text-white/90 font-bold font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-700">
           {feed.id}
         </span>
-        <button onClick={() => onMaximize(feed)} className="text-white hover:text-slate-300 p-1 hover:bg-white/10 rounded cursor-pointer">
-          <Maximize2 size={13} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {/* Quick upload in hover bar as well */}
+          <label className="text-white/80 hover:text-[#FF9933] p-1 hover:bg-white/10 rounded cursor-pointer" title="Upload Video or Image to this Camera">
+            <Upload size={13} />
+            <input
+              type="file"
+              accept="video/*,image/*"
+              disabled={feed.isAnalyzing}
+              onChange={(e) => {
+                if (e.target.files?.[0] && onUploadSource) {
+                  onUploadSource(feed, e.target.files[0]);
+                  e.target.value = '';
+                }
+              }}
+              className="sr-only"
+            />
+          </label>
+          <button onClick={() => onMaximize(feed)} className="text-white hover:text-slate-300 p-1 hover:bg-white/10 rounded cursor-pointer">
+            <Maximize2 size={13} />
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
 // -------------------------------------------------------------
-// 2. SIMULATED IMAGE SNAPSHOT FEED COMPONENT
+// 2. IMAGE SNAPSHOT FEED COMPONENT WITH PER-CAMERA UPLOAD & LIVE DETECTIONS
 // -------------------------------------------------------------
 const SimulatedImageFeed: React.FC<{
   feed: FeedItem;
   customization: ViewCustomization;
   onMaximize: (feed: FeedItem) => void;
-}> = ({ feed, customization, onMaximize }) => {
+  onUploadSource?: (feed: FeedItem, file: File) => void;
+}> = ({ feed, customization, onMaximize, onUploadSource }) => {
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -306,6 +462,15 @@ const SimulatedImageFeed: React.FC<{
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isRefreshing ? 'opacity-40 blur-xs' : 'opacity-90'}`}
         />
 
+        {/* Real-time Bounding Box Detections Overlay */}
+        <BoundingBoxOverlay
+          detections={feed.detections}
+          showAnnotations={customization.showAnnotations}
+          detectedPlate={feed.detectedPlate}
+          confidence={feed.confidence}
+          vehicleClass={feed.vehicleClass}
+        />
+
         {/* Heatmap Overlay */}
         {customization.showHeatmap && (
           <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/30 via-red-600/30 to-purple-600/30 pointer-events-none mix-blend-overlay" />
@@ -317,7 +482,7 @@ const SimulatedImageFeed: React.FC<{
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 pointer-events-none">
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 pointer-events-none z-20">
           <span className="bg-purple-600 text-white px-2 py-0.5 text-[8px] font-black rounded uppercase tracking-wider flex items-center gap-1 shadow-sm">
             <ImageIcon size={10} />
             ANPR SNAPSHOT
@@ -327,36 +492,56 @@ const SimulatedImageFeed: React.FC<{
           </span>
         </div>
 
+        {/* PER-CAMERA "ADD SOURCE" BUTTON (Top Right) */}
+        <div className="absolute top-2.5 right-2.5 z-20">
+          <label className="flex items-center gap-1 bg-purple-950/90 hover:bg-purple-900 text-white border border-purple-700/80 px-2 py-1 rounded-lg text-[8.5px] font-black cursor-pointer shadow-md transition-all hover:scale-105">
+            <Upload size={10} className="text-[#FF9933]" />
+            <span>Add Source</span>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              disabled={feed.isAnalyzing}
+              onChange={(e) => {
+                if (e.target.files?.[0] && onUploadSource) {
+                  onUploadSource(feed, e.target.files[0]);
+                  e.target.value = '';
+                }
+              }}
+              className="sr-only"
+            />
+          </label>
+        </div>
+
         {/* Timestamp Overlay */}
         {customization.showTimestamp && (
-          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-slate-950/80 to-transparent p-2 flex justify-between items-center text-[9px] text-white/90 font-mono pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-slate-950/80 to-transparent p-2 flex justify-between items-center text-[9px] text-white/90 font-mono pointer-events-none z-10">
             <span className="bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-700 font-bold">{feed.id} • {feed.location}</span>
             <span>{lastRefreshed.toLocaleTimeString()}</span>
           </div>
         )}
 
-        {/* AI Bounding Box & License Plate Detection Overlay */}
-        {customization.showAnnotations && (
-          <div className="absolute bottom-6 left-1/4 border-2 border-emerald-400 rounded p-1 bg-emerald-950/60 backdrop-blur-xs shadow-lg animate-pulse pointer-events-none">
-            <div className="flex items-center gap-1 text-[8px] font-black text-emerald-300 uppercase tracking-wider">
-              <Crosshair size={9} />
-              <span>{feed.detectedPlate || 'AP09 AB 1234'}</span>
-              <span className="bg-emerald-500 text-slate-950 px-1 rounded font-mono text-[7px]">{feed.confidence || 98}% MATCH</span>
-            </div>
-            <p className="text-[7px] text-slate-200 font-medium mt-0.5">{feed.vehicleClass || 'Sedan (White)'}</p>
+        {/* Flow status */}
+        {customization.showFlowRate && (
+          <div className="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-700 px-2 py-0.5 rounded text-[8px] font-bold text-emerald-400 z-10">
+            FLOW: {feed.flowStatus || 'NORMAL'}
           </div>
         )}
 
-        {/* Flow status */}
-        {customization.showFlowRate && (
-          <div className="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-700 px-2 py-0.5 rounded text-[8px] font-bold text-emerald-400">
-            FLOW: {feed.flowStatus || 'NORMAL'}
+        {/* Real-time AI Worker Scanning HUD */}
+        {feed.isAnalyzing && (
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-30 animate-in fade-in duration-200">
+            <Loader2 size={24} className="text-[#FF9933] animate-spin mb-2" />
+            <span className="text-[11px] font-black text-white tracking-wide">{feed.analysisStage || 'AI OCR Engine Processing...'}</span>
+            <div className="w-44 bg-slate-800 rounded-full h-2 mt-2 overflow-hidden border border-slate-700">
+              <div className="bg-gradient-to-r from-[#FF9933] to-emerald-400 h-full transition-all duration-300" style={{ width: `${feed.analysisProgress || 10}%` }} />
+            </div>
+            <span className="text-[9px] font-mono text-emerald-400 font-bold mt-1">{feed.analysisProgress || 10}% Processed</span>
           </div>
         )}
       </div>
 
       {/* Controls Bar */}
-      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-20">
         <button
           onClick={handleManualRefresh}
           className="flex items-center gap-1 text-white hover:text-purple-300 text-[9px] font-bold bg-purple-900/60 hover:bg-purple-800 px-2 py-1 rounded border border-purple-700 transition cursor-pointer"
@@ -376,13 +561,14 @@ const SimulatedImageFeed: React.FC<{
 };
 
 // -------------------------------------------------------------
-// 3. SIMULATED WEBSCAN / OSINT RADAR FEED COMPONENT
+// 3. WEBSCAN / OSINT RADAR FEED COMPONENT
 // -------------------------------------------------------------
 const SimulatedWebScanFeed: React.FC<{
   feed: FeedItem;
   customization: ViewCustomization;
   onMaximize: (feed: FeedItem) => void;
-}> = ({ feed, customization, onMaximize }) => {
+  onUploadSource?: (feed: FeedItem, file: File) => void;
+}> = ({ feed, customization, onMaximize, onUploadSource }) => {
   const [packets, setPackets] = useState<string[]>([]);
   const [ping, setPing] = useState(18);
 
@@ -420,9 +606,22 @@ const SimulatedWebScanFeed: React.FC<{
             <span className="text-emerald-400 flex items-center gap-1 font-bold">
               <Wifi size={9} /> {ping}ms
             </span>
-            <span className="bg-slate-900 text-slate-300 px-1.5 py-0.5 rounded border border-slate-800 text-[8px]">
-              {feed.ipAddress || '192.168.4.12'}
-            </span>
+            {/* PER-CAMERA "ADD SOURCE" BUTTON (WebScan) */}
+            <label className="flex items-center gap-1 bg-amber-950/90 hover:bg-amber-900 text-amber-200 border border-amber-700/80 px-1.5 py-0.5 rounded text-[8px] font-black cursor-pointer shadow-md transition-all hover:scale-105">
+              <Upload size={9} className="text-[#FF9933]" />
+              <span>Add Source</span>
+              <input
+                type="file"
+                accept="video/*,image/*"
+                onChange={(e) => {
+                  if (e.target.files?.[0] && onUploadSource) {
+                    onUploadSource(feed, e.target.files[0]);
+                    e.target.value = '';
+                  }
+                }}
+                className="sr-only"
+              />
+            </label>
           </div>
         </div>
 
@@ -433,7 +632,7 @@ const SimulatedWebScanFeed: React.FC<{
             <Radio size={16} className="text-amber-400 animate-pulse" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="text-[9px] text-amber-200 font-bold truncate">{feed.webUrl || `https://surveillance.morth.gov.in/feed/${feed.id.toLowerCase()}`}</p>
+            <p className="text-[9px] text-amber-200 font-bold truncate">{feed.webUrl || `https://surveillance.morth.gov.in/nodes/${feed.id.toLowerCase()}`}</p>
             <p className="text-[8px] text-slate-400 mt-0.5 truncate">Sector: {feed.location} • Status: Active Scanning</p>
           </div>
         </div>
@@ -670,6 +869,81 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
   const videoCount = feeds.filter(f => f.sourceType === 'video').length;
   const imageCount = feeds.filter(f => f.sourceType === 'image').length;
   const webscanCount = feeds.filter(f => f.sourceType === 'webscan').length;
+
+  // Handle per-camera upload & real-time background AI scan
+  const handleCameraUpload = async (targetFeed: FeedItem, file: File) => {
+    const isVideo = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.avi');
+    const isImage = file.type.startsWith('image/') || file.name.endsWith('.jpg') || file.name.endsWith('.png') || file.name.endsWith('.jpeg');
+
+    // 1. Mark camera state as analyzing in real-time
+    setFeeds(prev => prev.map(f => {
+      if (f.id === targetFeed.id) {
+        return {
+          ...f,
+          isAnalyzing: true,
+          analysisProgress: 10,
+          analysisStage: 'Enqueuing AI detection job...'
+        };
+      }
+      return f;
+    }));
+
+    try {
+      const job = isVideo
+        ? await jobsApi.uploadVideo(file, targetFeed.name || targetFeed.id)
+        : await jobsApi.uploadImage(file, targetFeed.name || targetFeed.id);
+
+      // 2. Poll progress at safe 700ms intervals
+      const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (status) => {
+        setFeeds(prev => prev.map(f => {
+          if (f.id === targetFeed.id) {
+            return {
+              ...f,
+              analysisProgress: status.progress,
+              analysisStage: status.stage
+            };
+          }
+          return f;
+        }));
+      });
+
+      // 3. Create local media URL
+      const mediaUrl = URL.createObjectURL(file);
+      const topDet = result.detections?.[0];
+
+      // 4. Update the camera with real-time detections and media
+      setFeeds(prev => prev.map(f => {
+        if (f.id === targetFeed.id) {
+          return {
+            ...f,
+            isAnalyzing: false,
+            analysisProgress: 100,
+            analysisStage: 'Completed',
+            sourceType: isVideo ? 'video' : 'image',
+            videoUrl: isVideo ? mediaUrl : undefined,
+            imageUrl: isImage ? mediaUrl : f.imageUrl,
+            detections: result.detections && result.detections.length > 0 ? result.detections : undefined,
+            detectedPlate: topDet?.plateNumber || f.detectedPlate || 'AP09 AB 1234',
+            confidence: topDet ? Math.round(topDet.confidence * 100) : (f.confidence || 98),
+            vehicleClass: topDet?.vehicleClass || f.vehicleClass || 'Sedan (White)'
+          };
+        }
+        return f;
+      }));
+    } catch (err: any) {
+      console.error('Camera upload error:', err);
+      setFeeds(prev => prev.map(f => {
+        if (f.id === targetFeed.id) {
+          return {
+            ...f,
+            isAnalyzing: false
+          };
+        }
+        return f;
+      }));
+      alert(`AI Processing Failed: ${err.message || 'Error occurred while analyzing media'}`);
+    }
+  };
 
   const handleCancelActiveJob = async () => {
     if (activeJobId) {
@@ -1123,13 +1397,13 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
           <div key={feed.id} className={layout === 'list' ? 'max-w-2xl' : ''}>
             {/* Render component based on sourceType */}
             {feed.sourceType === 'video' && (
-              <SimulatedCCTVFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} />
+              <SimulatedCCTVFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
             )}
             {feed.sourceType === 'image' && (
-              <SimulatedImageFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} />
+              <SimulatedImageFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
             )}
             {feed.sourceType === 'webscan' && (
-              <SimulatedWebScanFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} />
+              <SimulatedWebScanFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
             )}
 
             {/* Sub-footer details in List mode */}
@@ -1137,9 +1411,25 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
               <div className="bg-white border-x border-b border-slate-200 p-3 rounded-b-xl -mt-2 flex justify-between items-center text-xs shadow-xs">
                 <div>
                   <span className="font-extrabold text-slate-800">{feed.name} ({feed.id})</span>
-                  <p className="text-[10px] text-slate-500">{feed.location} • Type: {feed.sourceType.toUpperCase()}</p>
+                  <p className="text-[10px] text-slate-500">{feed.location} • Type: {feed.sourceType.toUpperCase()} • Plate: {feed.detectedPlate || 'Scanning...'}</p>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1 bg-[#0A2540] hover:bg-[#18385A] text-white px-2.5 py-1 rounded-lg text-[9px] font-black cursor-pointer shadow-xs transition">
+                    <Upload size={10} className="text-[#FF9933]" />
+                    <span>Upload Source</span>
+                    <input
+                      type="file"
+                      accept="video/*,image/*"
+                      disabled={feed.isAnalyzing}
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          handleCameraUpload(feed, e.target.files[0]);
+                          e.target.value = '';
+                        }
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
                   <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                     UPTIME {feed.uptime}%
                   </span>
@@ -1401,17 +1691,17 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
             <div className="p-4 bg-slate-950 flex justify-center items-center">
               {maximizedFeed.sourceType === 'video' && (
                 <div className="w-full max-w-2xl">
-                  <SimulatedCCTVFeed feed={maximizedFeed} customization={customization} onMaximize={() => {}} />
+                  <SimulatedCCTVFeed feed={maximizedFeed} customization={customization} onMaximize={() => {}} onUploadSource={handleCameraUpload} />
                 </div>
               )}
               {maximizedFeed.sourceType === 'image' && (
                 <div className="w-full max-w-2xl">
-                  <SimulatedImageFeed feed={maximizedFeed} customization={customization} onMaximize={() => {}} />
+                  <SimulatedImageFeed feed={maximizedFeed} customization={customization} onMaximize={() => {}} onUploadSource={handleCameraUpload} />
                 </div>
               )}
               {maximizedFeed.sourceType === 'webscan' && (
                 <div className="w-full max-w-2xl">
-                  <SimulatedWebScanFeed feed={maximizedFeed} customization={customization} onMaximize={() => {}} />
+                  <SimulatedWebScanFeed feed={maximizedFeed} customization={customization} onMaximize={() => {}} onUploadSource={handleCameraUpload} />
                 </div>
               )}
             </div>
