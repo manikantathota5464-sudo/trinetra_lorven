@@ -85,7 +85,23 @@ export const VehicleSearchPage: React.FC = () => {
     }
   };
 
-  const results = resultsList;
+  const results = resultsList.filter(row => {
+    if (plateQuery.trim()) {
+      const q = plateQuery.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const p = row.plate.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (matchMode === 'exact' && p !== q) return false;
+      if (matchMode === 'startsWith' && !p.startsWith(q)) return false;
+      if (!p.includes(q)) return false;
+    }
+    if (brandFilter !== 'All Brands' && !row.brand.toLowerCase().includes(brandFilter.toLowerCase())) return false;
+    if (colorFilter !== 'All Colors' && !row.color.toLowerCase().includes(colorFilter.toLowerCase())) return false;
+    if (cameraFilter !== 'All Cameras' && row.cam !== cameraFilter) return false;
+    if (typeFilter !== 'All Types' && !row.type.toLowerCase().includes(typeFilter.toLowerCase())) return false;
+    return true;
+  });
+
+  const uniquePlatesCount = new Set(results.map(r => r.plate)).size;
+  const alertMatchesCount = results.filter(r => r.status !== 'Clean').length;
 
   const statusBadge: Record<string, string> = {
     red: 'bg-red-100 text-red-700 border border-red-200',
@@ -178,7 +194,7 @@ export const VehicleSearchPage: React.FC = () => {
           <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><Car size={15} /></div>
           <div>
             <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Detections Matched</div>
-            <div className="text-xl font-black text-slate-800">7</div>
+            <div className="text-xl font-black text-slate-800">{results.length}</div>
             <div className="text-[8px] text-slate-400 font-medium">From active sensor logs</div>
           </div>
         </div>
@@ -186,7 +202,7 @@ export const VehicleSearchPage: React.FC = () => {
           <div className="h-8 w-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0"><Filter size={15} /></div>
           <div>
             <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Unique Vehicles</div>
-            <div className="text-xl font-black text-slate-800">7</div>
+            <div className="text-xl font-black text-slate-800">{uniquePlatesCount}</div>
             <div className="text-[8px] text-slate-400 font-medium">Distinct registrations</div>
           </div>
         </div>
@@ -194,7 +210,7 @@ export const VehicleSearchPage: React.FC = () => {
           <div className="h-8 w-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center flex-shrink-0"><AlertTriangle size={15} /></div>
           <div>
             <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Alert Matches</div>
-            <div className="text-xl font-black text-red-600">6</div>
+            <div className="text-xl font-black text-red-600">{alertMatchesCount}</div>
             <div className="text-[8px] text-red-500 font-medium">Requires officer attention</div>
           </div>
         </div>

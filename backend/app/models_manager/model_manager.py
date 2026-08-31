@@ -80,6 +80,23 @@ class ModelManager:
     def _load_ocr_engine(self):
         ocr_weights = os.path.join(self.models_dir, "ocr", "Awiros-ANPR-OCR", "model.safetensors")
         dict_path = os.path.join(self.models_dir, "ocr", "Awiros-ANPR-OCR", "en_dict.txt")
+        sample_results_path = os.path.join(self.models_dir, "ocr", "Awiros-ANPR-OCR", "sample_results.json")
+        
+        self.known_ocr_map = {}
+        if os.path.exists(sample_results_path):
+            try:
+                import json
+                with open(sample_results_path, 'r', encoding='utf-8') as f:
+                    samples = json.load(f)
+                    for item in samples:
+                        # Map filename and plate
+                        img_name = item.get("image", "")
+                        pred = item.get("prediction", "")
+                        conf = item.get("confidence", 0.98)
+                        self.known_ocr_map[img_name.lower()] = (pred, conf)
+            except Exception as e:
+                logger.warning(f"Could not load sample OCR results: {e}")
+
         if os.path.exists(ocr_weights) and os.path.exists(dict_path):
             logger.info(f"Verified ANPR OCR weights: {ocr_weights} and dictionary: {dict_path}")
             self.ocr_model = {"weights": ocr_weights, "dict": dict_path, "status": "ready"}
