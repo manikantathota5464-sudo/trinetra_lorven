@@ -67,7 +67,7 @@ class MongoDBService:
 
     def _flush_memory_to_mongo(self):
         """Sync buffered in-memory items when MongoDB becomes available."""
-        if not self.is_connected or not self.db:
+        if not self.is_connected or self.db is None:
             return
         try:
             if self._memory_detections:
