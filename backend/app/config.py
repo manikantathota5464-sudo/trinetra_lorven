@@ -17,6 +17,10 @@ class Settings:
     MAX_WORKER_CONCURRENCY: int = 1  # 1 heavy AI job at a time to prevent GPU/CPU contention
     DEVICE: str = "cpu"  # "gpu" or "cpu"
 
+    # MongoDB Settings
+    MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "trinetra_db")
+
 settings = Settings()
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

@@ -1,6 +1,21 @@
-import React, { useState } from 'react';
-import { Search, Download, Filter, Car, AlertTriangle, Zap, RefreshCw, Upload, Loader2, Eye, MapPin, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { jobsApi, JobResultResponse } from '../services/api/jobsApi';
+import React, { useState, useEffect } from 'react';
+import { Search, Download, Filter, Car, AlertTriangle, Zap, RefreshCw, Upload, Loader2, Eye, MapPin, Plus, ChevronLeft, ChevronRight, Database } from 'lucide-react';
+import { jobsApi, JobResultResponse, DetectionItem } from '../services/api/jobsApi';
+
+export interface VehicleRecord {
+  plate: string;
+  conf: string;
+  brand: string;
+  color: string;
+  type: string;
+  loc: string;
+  cam: string;
+  speed: string;
+  lane: string;
+  time: string;
+  status: string;
+  statusColor: string;
+}
 
 export const VehicleSearchPage: React.FC = () => {
   const [plateQuery, setPlateQuery] = useState('');
@@ -19,24 +34,58 @@ export const VehicleSearchPage: React.FC = () => {
   const [scanStage, setScanStage] = useState('');
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
-  const [resultsList, setResultsList] = useState([
-    { plate: 'AP09 AB 1234', conf: '99.4%', brand: 'Hyundai i20 Sportz', color: 'White', type: 'Hatchback', loc: 'Main St & 5th Ave Intersection', cam: 'CAM-1024', speed: '54 km/h', lane: 'Lane 1 (Fast)', time: '18 Aug 2026, 08:19:23 AM', status: 'Stolen', statusColor: 'red' },
-    { plate: 'TS07 CD 5678', conf: '98.7%', brand: 'Maruti Suzuki Swift VXi', color: 'Red', type: 'Hatchback', loc: 'I-9 Overpass Corridor', cam: 'CAM-0785', speed: '88 km/h', lane: 'Lane 2', time: '18 Aug 2026, 08:18:04 AM', status: 'Speeding', statusColor: 'amber' },
-    { plate: 'AP16 EF 9012', conf: '96.2%', brand: 'Bajaj Pulsar NS200', color: 'Black', type: 'Motorcycle', loc: 'Harbor Rd Exit Ramp', cam: 'CAM-0456', speed: '42 km/h', lane: 'Lane 3', time: '18 Aug 2026, 08:17:15 AM', status: 'Cloned', statusColor: 'purple' },
-    { plate: 'AP39 GH 3456', conf: '99.1%', brand: 'Maruti Suzuki Brezza ZXi', color: 'Silver', type: 'SUV', loc: 'Riverside Park Ring Road', cam: 'CAM-0633', speed: '58 km/h', lane: 'Lane 1', time: '18 Aug 2026, 08:15:48 AM', status: 'Clean', statusColor: 'emerald' },
-    { plate: 'TS08 IJ 7890', conf: '95.8%', brand: 'Honda Activa 6G', color: 'Blue', type: 'Scooter', loc: '5th Avenue Market Crossing', cam: 'CAM-1201', speed: '36 km/h', lane: 'Lane 2', time: '18 Aug 2026, 08:14:12 AM', status: 'No Helmet', statusColor: 'amber' },
-  ]);
+  // Live real data state (no hardcoded mock data)
+  const [resultsList, setResultsList] = useState<VehicleRecord[]>([]);
+  const [dbStats, setDbStats] = useState<{ connected: boolean; total_detections: number; unique_plates: number; total_violations: number }>({
+    connected: false,
+    total_detections: 0,
+    unique_plates: 0,
+    total_violations: 0
+  });
+
+  const loadFromDatabase = async () => {
+    try {
+      const [stored, stats] = await Promise.all([
+        jobsApi.getDetections({ limit: 100 }),
+        jobsApi.getStats()
+      ]);
+      setDbStats(stats);
+      if (stored && stored.length > 0) {
+        const mapped: VehicleRecord[] = stored.map((d: any) => ({
+          plate: d.plateNumber,
+          conf: `${Math.round((d.confidence > 1 ? d.confidence : d.confidence * 100))}%`,
+          brand: d.vehicleClass || 'Sedan',
+          color: d.color || 'White',
+          type: d.vehicleClass ? d.vehicleClass.split(' ')[0] : 'Sedan',
+          loc: d.location || (d.filename ? `Uploaded Media (${d.filename})` : 'AI Analysis Node'),
+          cam: d.camera_id || 'AI-SURVEILLANCE',
+          speed: d.speed || '52 km/h',
+          lane: d.lane || 'Lane 1',
+          time: d.timestamp || d.timestamp_iso || new Date().toLocaleTimeString(),
+          status: d.violation ? (d.violation.includes('Speed') ? 'Speeding' : 'Violation') : 'Clean',
+          statusColor: d.violation ? 'amber' : 'emerald'
+        }));
+        setResultsList(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to load detections from MongoDB:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadFromDatabase();
+  }, []);
 
   const handleMediaScan = async (file: File) => {
     try {
       setIsScanning(true);
       setScanProgress(5);
-      setScanStage(`Submitting ${file.name} for background inference...`);
+      setScanStage(`Uploading ${file.name} to AI Engine...`);
 
       const isVideo = file.type.startsWith('video') || file.name.endsWith('.mp4') || file.name.endsWith('.avi');
       const job = isVideo
-        ? await jobsApi.uploadVideo(file, 'VehicleSearchScan')
-        : await jobsApi.uploadImage(file, 'VehicleSearchScan');
+        ? await jobsApi.uploadVideo(file, file.name)
+        : await jobsApi.uploadImage(file, file.name);
 
       setActiveJobId(job.job_id);
 
@@ -45,28 +94,15 @@ export const VehicleSearchPage: React.FC = () => {
         setScanStage(st.stage);
       });
 
-      // Prepend detected items
-      if (result.detections && result.detections.length > 0) {
-        const newDetections = result.detections.map(d => ({
-          plate: d.plateNumber,
-          conf: `${Math.round(d.confidence * 100)}%`,
-          brand: d.vehicleClass,
-          color: d.color || 'White',
-          type: d.vehicleClass.split(' ')[0] || 'Sedan',
-          loc: 'AI Media Analysis Scan Node',
-          cam: 'SCAN-AI-01',
-          speed: '52 km/h',
-          lane: 'Lane 1',
-          time: new Date().toLocaleTimeString(),
-          status: d.violation ? (d.violation.includes('Speed') ? 'Speeding' : 'Violation') : 'Clean',
-          statusColor: d.violation ? 'amber' : 'emerald'
-        }));
+      // Reload live records directly from MongoDB
+      await loadFromDatabase();
 
-        setResultsList(prev => [...newDetections, ...prev]);
+      // If results returned from this job, also highlight top plate in query
+      if (result.detections && result.detections.length > 0) {
         setPlateQuery(result.detections[0].plateNumber);
       }
     } catch (err: any) {
-      alert(`AI Scan error: ${err.message || 'Scan failed'}`);
+      alert(`AI Video/Image Scan error: ${err.message || 'Scan failed'}`);
     } finally {
       setIsScanning(false);
       setActiveJobId(null);
@@ -299,7 +335,12 @@ export const VehicleSearchPage: React.FC = () => {
         <div className="px-3 py-2 border-b border-slate-100 flex justify-between items-center flex-shrink-0 bg-slate-50">
           <div className="flex items-center gap-2">
             <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Search Query Detections</h3>
-            <span className="text-[9px] bg-[#0A2540] text-white px-2 py-0.5 rounded-full font-bold">5 Records</span>
+            <span className="text-[9px] bg-[#0A2540] text-white px-2 py-0.5 rounded-full font-bold">{results.length} Records</span>
+            {dbStats.connected && (
+              <span className="text-[8px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-mono font-bold border border-emerald-200 flex items-center gap-1">
+                <Database size={9} /> MongoDB Synced
+              </span>
+            )}
           </div>
           <div className="flex items-center bg-slate-200 p-0.5 rounded-lg border border-slate-300">
             <button onClick={() => setViewMode('table')}
@@ -344,14 +385,11 @@ export const VehicleSearchPage: React.FC = () => {
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="font-bold text-slate-800 text-[10px]">{row.brand}</div>
-                    <div className="text-[9px] text-slate-500 flex items-center gap-1">
-                      <span className={`w-1.5 h-1.5 rounded-full inline-block flex-shrink-0 ${row.color === 'White' ? 'bg-slate-200 border border-slate-300' : row.color === 'Red' ? 'bg-red-500' : row.color === 'Black' ? 'bg-slate-900' : row.color === 'Silver' ? 'bg-slate-300' : 'bg-blue-500'}`}></span>
-                      {row.color} · {row.type}
-                    </div>
+                    <div className="text-[9px] text-slate-400 font-medium">{row.color} • {row.type}</div>
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="font-semibold text-slate-700 text-[10px]">{row.loc}</div>
-                    <div className="text-[9px] text-slate-400">@ {row.cam}</div>
+                    <div className="text-[9px] text-slate-400 font-mono">{row.cam}</div>
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="font-bold text-slate-800 text-[10px]">{row.speed}</div>
@@ -375,6 +413,19 @@ export const VehicleSearchPage: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {results.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-14 text-center text-slate-500 font-semibold">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Database size={30} className="text-slate-300 animate-pulse" />
+                      <p className="text-xs font-black text-slate-700 uppercase tracking-wider">No Vehicle Detections in Database</p>
+                      <p className="text-[10px] text-slate-400 max-w-sm">
+                        Upload a video or image using the "Upload Media for AI Scan" button above to run real-time inference and persist number plates to MongoDB.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

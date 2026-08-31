@@ -14,6 +14,7 @@ from ..jobs.schemas import (
     JobType, JobStatus, JobCreateResponse, JobStatusResponse, JobResultResponse
 )
 from ..workers.ai_worker import get_ai_worker
+from ..db.mongodb import db_client
 
 router = APIRouter()
 job_manager = get_job_manager()
@@ -107,3 +108,24 @@ async def cancel_job(job_id: str):
     if not success:
         raise HTTPException(status_code=404, detail="Job not found.")
     return {"job_id": job_id, "status": JobStatus.CANCELLED, "message": "Job cancellation signal sent."}
+
+@router.get("/detections")
+async def get_detections(
+    limit: int = 100,
+    plate: Optional[str] = None,
+    violation_only: bool = False,
+    job_id: Optional[str] = None
+):
+    """Query live stored detections from MongoDB."""
+    records = db_client.get_detections(
+        limit=limit,
+        plate_query=plate,
+        violation_only=violation_only,
+        job_id=job_id
+    )
+    return {"count": len(records), "detections": records}
+
+@router.get("/stats")
+async def get_system_stats():
+    """Query live MongoDB database storage metrics."""
+    return db_client.get_db_stats()

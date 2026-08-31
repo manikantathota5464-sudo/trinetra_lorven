@@ -13,6 +13,7 @@ from ..jobs.schemas import JobType, JobStatus
 from ..models_manager.model_manager import get_model_manager
 from ..processing.image_processor import process_image_file
 from ..processing.video_processor import process_video_file
+from ..db.mongodb import db_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TRINETRA.AIWorker")
@@ -111,8 +112,25 @@ class AIWorker:
                 logger.info(f"Job {job_id} completed cancellation.")
                 return
 
+            # Save detections & job into MongoDB
+            detections = results.get("detections", [])
+            for d in detections:
+                d["job_id"] = job_id
+                d["filename"] = job.get("filename", "")
+                d["sourceType"] = "video" if job_type == JobType.VIDEO else "image"
+            
+            db_client.save_detections_batch(detections)
+            db_client.save_job({
+                "job_id": job_id,
+                "filename": job.get("filename", ""),
+                "job_type": str(job_type),
+                "summary": results.get("summary", {}),
+                "detections_count": len(detections),
+                "completed_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            })
+
             self.job_manager.complete_job(job_id, results)
-            logger.info(f"Job {job_id} completed successfully with {len(results.get('detections', []))} detections.")
+            logger.info(f"Job {job_id} completed successfully and saved {len(detections)} detections to MongoDB.")
             
         except Exception as e:
             err_msg = f"{type(e).__name__}: {str(e)}"

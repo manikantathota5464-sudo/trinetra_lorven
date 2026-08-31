@@ -142,6 +142,38 @@ export const jobsApi = {
   },
 
   /**
+   * Retrieves live detections saved in MongoDB.
+   */
+  async getDetections(params?: { limit?: number; plate?: string; violationOnly?: boolean }): Promise<DetectionItem[]> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.plate) queryParams.append('plate', params.plate);
+      if (params?.violationOnly) queryParams.append('violation_only', 'true');
+
+      const res = await fetch(`${API_BASE}/api/detections?${queryParams.toString()}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.detections || [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Retrieves MongoDB storage statistics.
+   */
+  async getStats(): Promise<{ connected: boolean; total_detections: number; unique_plates: number; total_violations: number }> {
+    try {
+      const res = await fetch(`${API_BASE}/api/stats`);
+      if (!res.ok) return { connected: false, total_detections: 0, unique_plates: 0, total_violations: 0 };
+      return await res.json();
+    } catch {
+      return { connected: false, total_detections: 0, unique_plates: 0, total_violations: 0 };
+    }
+  },
+
+  /**
    * Helper that polls job progress at a healthy interval (e.g. 700ms) without overloading React or network.
    */
   async pollJob(

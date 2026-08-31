@@ -119,9 +119,43 @@ def test_pipeline():
     assert cancel_res.json()["status"] == "CANCELLED"
     print("  [PASS] Job Cancellation PASSED")
 
+    # 8. Test Full Video Processing & MongoDB Storage
+    print("\n[TEST 5] Testing Full Video Processing & MongoDB Storage...")
+    with open(test_video_path, "rb") as f:
+        res = requests.post(f"{base_url}/api/jobs/video", files={"file": ("test_sample_video.mp4", f, "video/mp4")})
+    assert res.status_code == 200
+    v_run_id = res.json()["job_id"]
+    print(f"  Enqueued full video job: {v_run_id}")
+
+    # Poll until complete
+    v_completed = False
+    for _ in range(30):
+        time.sleep(0.3)
+        st = requests.get(f"{base_url}/api/jobs/{v_run_id}").json()
+        print(f"  Video Progress: {st['progress']}% | Stage: {st['stage']}")
+        if st["status"] == "COMPLETED":
+            v_completed = True
+            break
+        elif st["status"] == "FAILED":
+            raise RuntimeError(f"Video job failed: {st.get('error')}")
+
+    assert v_completed, "Video job did not complete in time"
+    
+    # Verify detections returned from MongoDB API
+    dets_res = requests.get(f"{base_url}/api/detections?limit=20").json()
+    print(f"  MongoDB Detections API count: {dets_res['count']}")
+    assert dets_res['count'] > 0, "No detections found in MongoDB"
+    print(f"  Sample MongoDB stored detection: {dets_res['detections'][0]}")
+    
+    stats_res = requests.get(f"{base_url}/api/stats").json()
+    print(f"  MongoDB Stats: {stats_res}")
+    assert stats_res['total_detections'] > 0
+    print("  [PASS] Full Video Inference & MongoDB Storage PASSED")
+
     print("\n==================================================")
     print(" ALL INTEGRATION TESTS PASSED SUCCESSFULLY! ")
     print("==================================================")
 
 if __name__ == "__main__":
     test_pipeline()
+

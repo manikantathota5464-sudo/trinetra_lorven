@@ -82,14 +82,18 @@ const BoundingBoxOverlay: React.FC<{
 
   const items: DetectionItem[] = detections && detections.length > 0
     ? detections
-    : [{
-        id: 'det-default',
-        plateNumber: detectedPlate || 'AP09 AB 1234',
+    : detectedPlate
+    ? [{
+        id: 'det-scanned',
+        plateNumber: detectedPlate,
         confidence: (confidence || 98) / 100,
-        vehicleClass: vehicleClass || 'Sedan (White)',
+        vehicleClass: vehicleClass || 'Vehicle Detected',
         bbox: [22, 45, 78, 85],
-        violation: detectedPlate?.includes('1234') ? 'Speeding (78 km/h)' : null
-      }];
+        violation: detectedPlate.includes('1234') ? 'Speeding (78 km/h)' : null
+      }]
+    : [];
+
+  if (items.length === 0) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
@@ -685,9 +689,6 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
       cameraType: 'PTZ',
       lastSeen: '08:19:23 AM',
       uptime: 99.8,
-      detectedPlate: 'AP09 AB 1234',
-      confidence: 98,
-      vehicleClass: 'Hyundai i20',
       flowStatus: 'NORMAL'
     },
     {
@@ -700,9 +701,6 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
       lastSeen: '08:19:18 AM',
       uptime: 100,
       imageUrl: 'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?w=600&auto=format&fit=crop&q=80',
-      detectedPlate: 'TS07 CD 5678',
-      confidence: 96,
-      vehicleClass: 'Maruti Swift',
       flowStatus: 'HEAVY'
     },
     {
@@ -727,9 +725,6 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
       cameraType: 'PTZ',
       lastSeen: '08:19:10 AM',
       uptime: 99.6,
-      detectedPlate: 'AP16 EF 9012',
-      confidence: 94,
-      vehicleClass: 'Pulsar NS200',
       flowStatus: 'NORMAL'
     },
     {
@@ -742,9 +737,6 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
       lastSeen: '08:19:05 AM',
       uptime: 99.9,
       imageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&auto=format&fit=crop&q=80',
-      detectedPlate: 'AP39 GH 3456',
-      confidence: 97,
-      vehicleClass: 'Maruti Brezza',
       flowStatus: 'NORMAL'
     },
     {
