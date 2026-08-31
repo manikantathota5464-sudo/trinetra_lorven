@@ -107,181 +107,86 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-2 overflow-hidden">
       
-      {/* VAHAN & NCIC Gateway Header Claim */}
-      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-5 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4 gov-card-interactive">
-        <div>
-          <div className="flex items-center gap-2 text-[#0A2540] font-black text-xs uppercase tracking-wider mb-1">
-            <Shield size={16} className="text-red-600" />
-            <span>National Vehicle Hotlist &amp; Impound Registry</span>
+      {/* VAHAN Header - compact */}
+      <div className="bg-gradient-to-r from-[#0A2540] to-[#163E66] border border-[#0A2540] rounded-xl p-2.5 px-4 shadow-sm flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Shield size={14} className="text-[#FF9933]" />
+          <div>
+            <div className="text-[9px] font-black uppercase text-slate-300 tracking-wider">National Vehicle Hotlist &amp; Impound Registry</div>
+            <div className="text-sm font-black text-white flex items-center gap-2">
+              VAHAN 4.0 &amp; NCIC / CCTNS Stolen Vehicle Grid
+              <span className="text-[8px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse"></span>
+                Live Sync Active
+              </span>
+            </div>
           </div>
-          <h2 className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 tracking-tight flex items-center gap-2">
-            <span>VAHAN 4.0 &amp; NCIC / CCTNS Stolen Vehicle Grid</span>
-            <span className="text-[9.5px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-              Live Sync Active
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Automated ANPR camera match-making against the central database of flagged, stolen, cloned, and high-risk impound vehicles.
-          </p>
+        </div>
+        <div className="text-[8px] text-slate-400 font-semibold max-w-xs text-right hidden md:block">
+          Automated ANPR match-making against flagged, stolen, cloned &amp; high-risk vehicles
         </div>
       </div>
 
-      {/* Metrics Row (Screenshot 9) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-4 gap-2 flex-shrink-0">
         
         {/* Stolen Vehicles */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-red-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-1">{stolenCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">Active in watch list</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
+            <div className="text-2xl font-black tracking-tight text-red-600 mt-0.5">{stolenCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">Active in watch list</span>
           </div>
-          <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
-            <Shield size={20} />
+          <div className="p-1.5 bg-red-50 text-red-600 rounded-lg group-hover:bg-red-500 group-hover:text-white transition-colors">
+            <Shield size={14} />
           </div>
         </div>
 
         {/* Cloned Vehicles */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-purple-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-purple-600 mt-1">{clonedCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">Active in watch list</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
+            <div className="text-2xl font-black tracking-tight text-purple-600 mt-0.5">{clonedCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">Active in watch list</span>
           </div>
-          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
-            <Shield size={20} />
+          <div className="p-1.5 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-500 group-hover:text-white transition-colors">
+            <Shield size={14} />
           </div>
         </div>
 
         {/* Total Watch List */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Watch List</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-1">{totalCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">All stolen + cloned</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Total Watch List</span>
+            <div className="text-2xl font-black tracking-tight text-[#0A2540] mt-0.5">{totalCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">All stolen + cloned</span>
           </div>
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
-            <Shield size={20} />
+          <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors">
+            <Shield size={14} />
           </div>
         </div>
 
         {/* Recently Added */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between gov-card-interactive">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-emerald-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Recently Added</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-emerald-600 mt-1">{recentAddCount}</div>
-            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">In last 7 days</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Recently Added</span>
+            <div className="text-2xl font-black tracking-tight text-emerald-600 mt-0.5">{recentAddCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">In last 7 days</span>
           </div>
-          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
-            <PlusCircle size={20} />
+          <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+            <PlusCircle size={14} />
           </div>
         </div>
 
       </div>
 
-      {/* Advanced search and filters (Screenshot 9) */}
-      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Filters + Tabs row */}
+      <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl p-2 shadow-sm flex items-center gap-2 flex-shrink-0 flex-wrap">
         
-        {/* Left Inputs */}
-        <div className="flex flex-wrap items-center gap-3 flex-1">
-          
-          {/* Plate Search */}
-          <div className="relative flex-1 min-w-[200px] max-w-xs">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-              <Search size={14} />
-            </span>
-            <input
-              type="text"
-              placeholder="Search by plate, chassis, owner..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
-            />
-          </div>
-
-          {/* Watch Type dropdown */}
-          <select
-            value={watchTypeFilter}
-            onChange={(e) => setWatchTypeFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Watch Types</option>
-            <option>Stolen</option>
-            <option>Cloned</option>
-          </select>
-
-          {/* Status dropdown */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Flagged</option>
-            <option>Resolved</option>
-          </select>
-
-          {/* Colors dropdown */}
-          <select
-            value={colorFilter}
-            onChange={(e) => setColorFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Colors</option>
-            <option>White</option>
-            <option>Red</option>
-            <option>Black</option>
-            <option>Silver</option>
-            <option>Blue</option>
-          </select>
-
-          {/* Brands dropdown */}
-          <select
-            value={brandFilter}
-            onChange={(e) => setBrandFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Brands</option>
-            <option>Hyundai</option>
-            <option>Maruti</option>
-            <option>Bajaj</option>
-            <option>Honda</option>
-          </select>
-
-          <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-xs font-semibold text-slate-600">
-            <Sliders size={14} />
-            <span>More Filters</span>
-          </button>
-        </div>
-
-        {/* Right controls */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExport}
-            className="p-2 border border-slate-200 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 rounded-xl text-slate-600 transition"
-            title="Export CSV"
-          >
-            <FileSpreadsheet size={14} />
-          </button>
-          
-          <button
-            onClick={() => setAddModalOpen(true)}
-            className="bg-[#0A2540] hover:bg-[#18385A] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
-          >
-            <Plus size={16} />
-            <span>Add Vehicle</span>
-          </button>
-        </div>
-
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-slate-200">
-        <nav className="flex gap-6 -mb-px">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
           {(['All', 'Stolen', 'Cloned'] as const).map((tab) => {
             const counts = tab === 'All' ? totalCount : tab === 'Stolen' ? stolenCount : clonedCount;
             const isActive = activeTab === tab;
@@ -289,27 +194,115 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-xs font-bold border-b-2 flex items-center gap-2 ${
+                className={`px-2.5 py-1 rounded text-[9px] font-black transition-all cursor-pointer ${
                   isActive
-                    ? 'border-[#0A2540] text-[#0A2540] font-black'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'bg-[#0A2540] text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-800'
                 }`}
               >
-                <span>{tab === 'All' ? 'All Vehicles' : tab + ' Vehicles'}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-[#0A2540] text-white' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {counts}
-                </span>
+                {tab === 'All' ? 'All' : tab} <span className="opacity-70">({counts})</span>
               </button>
             );
           })}
-        </nav>
+        </div>
+
+        {/* Plate Search */}
+        <div className="relative min-w-[150px] flex-1 max-w-xs">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400">
+            <Search size={11} />
+          </span>
+          <input
+            type="text"
+            placeholder="Search plate, chassis, owner..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-7 pr-3 py-1.5 border border-slate-200 rounded-lg text-[10px] focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
+          />
+        </div>
+
+        {/* Watch Type dropdown */}
+        <select
+          value={watchTypeFilter}
+          onChange={(e) => setWatchTypeFilter(e.target.value)}
+          className="bg-red-50 border border-red-200 text-red-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-red-100 transition-colors"
+        >
+          <option>All Watch Types</option>
+          <option>Stolen</option>
+          <option>Cloned</option>
+        </select>
+
+        {/* Status dropdown */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-emerald-100 transition-colors"
+        >
+          <option>All Status</option>
+          <option>Active</option>
+          <option>Flagged</option>
+          <option>Resolved</option>
+        </select>
+
+        {/* Colors dropdown */}
+        <select
+          value={colorFilter}
+          onChange={(e) => setColorFilter(e.target.value)}
+          className="bg-blue-50 border border-blue-200 text-blue-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-blue-100 transition-colors"
+        >
+          <option>All Colors</option>
+          <option>White</option>
+          <option>Red</option>
+          <option>Black</option>
+          <option>Silver</option>
+          <option>Blue</option>
+        </select>
+
+        {/* Brands dropdown */}
+        <select
+          value={brandFilter}
+          onChange={(e) => setBrandFilter(e.target.value)}
+          className="bg-purple-50 border border-purple-200 text-purple-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-purple-100 transition-colors"
+        >
+          <option>All Brands</option>
+          <option>Hyundai</option>
+          <option>Maruti</option>
+          <option>Bajaj</option>
+          <option>Honda</option>
+        </select>
+
+        {/* More Filters / Reset button - actually resets all filters */}
+        <button
+          onClick={() => { setSearchTerm(''); setWatchTypeFilter('All Watch Types'); setStatusFilter('All Status'); setColorFilter('All Colors'); setBrandFilter('All Brands'); }}
+          className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+        >
+          <Sliders size={11} />
+          <span>Reset Filters</span>
+        </button>
+
+        {/* Right controls */}
+        <div className="flex items-center gap-2 ml-auto">
+          <button
+            onClick={handleExport}
+            className="p-1.5 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-600 cursor-pointer"
+            title="Export CSV"
+          >
+            <FileSpreadsheet size={13} />
+          </button>
+          
+          <button
+            onClick={() => setAddModalOpen(true)}
+            className="bg-[#0A2540] hover:bg-[#18385A] text-white px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 shadow-sm cursor-pointer"
+          >
+            <Plus size={12} />
+            <span>Add Vehicle</span>
+          </button>
+        </div>
+
       </div>
 
       {/* Table Data Grid */}
-      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative overflow-hidden shadow-sm">
-        <div className="overflow-x-auto scrollbar-thin">
+      <div className="flex-1 min-h-0 bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl overflow-hidden shadow-sm flex flex-col">
+        <div className="overflow-y-auto flex-1 min-h-0">
           <table className="min-w-full divide-y divide-slate-100 text-left">
             <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>

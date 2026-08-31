@@ -93,76 +93,76 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-2 overflow-hidden">
       
-      {/* Metrics Row (Screenshot 1) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-5 gap-2 flex-shrink-0">
         
         {/* Total Alerts */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Total Alerts</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-1">{totalCount}</div>
-            <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">All time logged cases</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Total Alerts</span>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540] mt-0.5">{totalCount}</div>
+            <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">All time logged cases</span>
           </div>
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
-            <AlertTriangle size={20} />
+          <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+            <AlertTriangle size={14} />
           </div>
         </div>
 
         {/* Active Alerts */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-red-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Active Alerts</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-1">{activeCount}</div>
-            <span className="text-[9px] text-red-500 font-semibold block mt-0.5">Requires attention</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Active Alerts</span>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600 mt-0.5">{activeCount}</div>
+            <span className="text-[8px] text-red-500 font-semibold block mt-0.5">Requires attention</span>
           </div>
-          <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
-            <AlertTriangle size={20} />
+          <div className="p-1.5 bg-red-50 text-red-600 rounded-lg">
+            <AlertTriangle size={14} />
           </div>
         </div>
 
         {/* Fined Vehicles */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-slate-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Fined Vehicles</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-1">{finedCount}</div>
-            <span className="text-[9px] text-emerald-600 font-bold block mt-0.5">↑ 12.4% this month</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Fined Vehicles</span>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800 mt-0.5">{finedCount}</div>
+            <span className="text-[8px] text-emerald-600 font-bold block mt-0.5">↑ 12.4% this month</span>
           </div>
-          <div className="p-2.5 bg-slate-100 text-slate-700 rounded-lg">
-            <FileText size={20} />
+          <div className="p-1.5 bg-slate-100 text-slate-700 rounded-lg">
+            <FileText size={14} />
           </div>
         </div>
 
         {/* Stolen Vehicles */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-indigo-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-indigo-600 mt-1">{stolenCount}</div>
-            <span className="text-[9px] text-purple-600 font-bold block mt-0.5">↑ 8.7% active cases</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Stolen Vehicles</span>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-indigo-600 mt-0.5">{stolenCount}</div>
+            <span className="text-[8px] text-purple-600 font-bold block mt-0.5">↑ 8.7% active cases</span>
           </div>
-          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
-            <AlertTriangle size={20} />
+          <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+            <AlertTriangle size={14} />
           </div>
         </div>
 
         {/* Cloned Vehicles */}
-        <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-orange-500 rounded-xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-2.5 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
-            <div className="text-3xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-orange-600 mt-1">{clonedCount}</div>
-            <span className="text-[9px] text-amber-500 font-bold block mt-0.5">↑ 15.2% investigating</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">Cloned Vehicles</span>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-orange-600 mt-0.5">{clonedCount}</div>
+            <span className="text-[8px] text-amber-500 font-bold block mt-0.5">↑ 15.2% investigating</span>
           </div>
-          <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
-            <AlertTriangle size={20} />
+          <div className="p-1.5 bg-orange-50 text-orange-600 rounded-lg">
+            <AlertTriangle size={14} />
           </div>
         </div>
 
       </div>
 
-      {/* Tabs list (Screenshot 1) */}
-      <div className="border-b border-slate-200">
-        <nav className="flex gap-6 -mb-px">
+      {/* Tabs list */}
+      <div className="border-b border-slate-200 flex-shrink-0">
+        <nav className="flex gap-4 -mb-px">
           {(['All', 'Fined', 'Stolen', 'Cloned'] as const).map((tab) => {
             const counts = tab === 'All' ? totalCount : tab === 'Fined' ? finedCount : tab === 'Stolen' ? stolenCount : clonedCount;
             const isActive = activeTab === tab;
@@ -170,14 +170,14 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+                className={`pb-1.5 text-[10px] font-bold transition-all border-b-2 flex items-center gap-1.5 cursor-pointer ${
                   isActive
                     ? 'border-[#0A2540] text-[#0A2540] font-black'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <span>{tab === 'All' ? 'All Alerts' : tab + ' Vehicles'}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
                   isActive ? 'bg-[#0A2540] text-white' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {counts}
@@ -188,95 +188,92 @@ export const AlertsIncidentsPage: React.FC<AlertsIncidentsPageProps> = ({
         </nav>
       </div>
 
-      {/* Filters Segment (Screenshot 1) */}
-      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative p-4 shadow-sm space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          
-          {/* Date range picker representation */}
-          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 text-xs">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-transparent focus:outline-none text-slate-600 font-semibold"
-            />
-            <span className="text-slate-400 font-bold">-</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-transparent focus:outline-none text-slate-600 font-semibold"
-            />
-          </div>
-
-          {/* Location filter */}
-          <select
-            value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Locations</option>
-            <option>Main St</option>
-            <option>I-9 Overpass</option>
-            <option>Harbor Rd</option>
-            <option>City Center</option>
-            <option>Riverside</option>
-          </select>
-
-          {/* Alert Type filter */}
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Alert Types</option>
-            <option value="Fines">Fines & Violations</option>
-            <option value="Stolen">Stolen Vehicles</option>
-            <option value="Cloned">Cloned Vehicles</option>
-          </select>
-
-          {/* Status filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none font-semibold"
-          >
-            <option>All Status</option>
-            <option>Unpaid</option>
-            <option>Active</option>
-            <option>Under Review</option>
-            <option>Pending</option>
-            <option>Resolved</option>
-          </select>
-
-          {/* Search bar */}
-          <div className="relative flex-1 min-w-[180px] max-w-xs">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-              <Search size={14} />
-            </span>
-            <input
-              type="text"
-              placeholder="Search by plate, ID, details..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
-            />
-          </div>
-
-          <button
-            onClick={handleExport}
-            className="ml-auto bg-slate-50 hover:bg-slate-100 text-slate-700 px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
-          >
-            <Download size={14} />
-            <span>Export</span>
-          </button>
-
+      {/* Filters Row */}
+      <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl p-2 shadow-sm flex items-center gap-2 flex-shrink-0 flex-wrap">
+        
+        {/* Date range */}
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-[10px]">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="bg-transparent focus:outline-none text-slate-600 font-semibold text-[10px]"
+          />
+          <span className="text-slate-400 font-bold">-</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="bg-transparent focus:outline-none text-slate-600 font-semibold text-[10px]"
+          />
         </div>
+
+        {/* Location filter */}
+        <select
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+          className="bg-blue-50 border border-blue-200 text-blue-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-blue-100 transition-colors"
+        >
+          <option>All Locations</option>
+          <option>Main St</option>
+          <option>I-9 Overpass</option>
+          <option>Harbor Rd</option>
+          <option>City Center</option>
+          <option>Riverside</option>
+        </select>
+
+        {/* Alert Type filter */}
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="bg-amber-50 border border-amber-200 text-amber-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-amber-100 transition-colors"
+        >
+          <option>All Alert Types</option>
+          <option value="Fines">Fines &amp; Violations</option>
+          <option value="Stolen">Stolen Vehicles</option>
+          <option value="Cloned">Cloned Vehicles</option>
+        </select>
+
+        {/* Status filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] rounded-lg p-1.5 focus:outline-none font-bold cursor-pointer hover:bg-emerald-100 transition-colors"
+        >
+          <option>All Status</option>
+          <option>Unpaid</option>
+          <option>Active</option>
+          <option>Under Review</option>
+          <option>Pending</option>
+          <option>Resolved</option>
+        </select>
+
+        {/* Search */}
+        <div className="relative flex-1 min-w-[140px]">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-slate-400">
+            <Search size={11} />
+          </span>
+          <input
+            type="text"
+            placeholder="Search by plate, ID, details..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-6 pr-3 py-1.5 border border-slate-200 rounded-lg text-[10px] focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
+          />
+        </div>
+
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-[10px] font-bold text-slate-600 cursor-pointer ml-auto"
+        >
+          <Download size={11} />
+          Export
+        </button>
       </div>
 
       {/* Table Data Grid */}
-      <div className="bg-white border-2 border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl gov-card-interactive hover:shadow-lg transition-all duration-300 group overflow-hidden relative overflow-hidden shadow-sm">
-        <div className="overflow-x-auto scrollbar-thin">
+      <div className="flex-1 min-h-0 bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl overflow-hidden shadow-sm flex flex-col">
+        <div className="overflow-y-auto flex-1 min-h-0">
           <table className="min-w-full divide-y divide-slate-100 text-left">
             <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>

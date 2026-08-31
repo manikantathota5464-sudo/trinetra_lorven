@@ -81,108 +81,93 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
   const ptzCount = cameras.filter(c => c.type === 'PTZ').length + 307;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-2 overflow-hidden">
       
-      {/* Cards Row (Screenshot 3) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Cards Row */}
+      <div className="grid grid-cols-5 gap-2 flex-shrink-0">
         
         {/* Total Cameras */}
-        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-[#0A2540] rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
-            <Camera size={64} />
-          </div>
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-[#0A2540] rounded-xl p-2.5 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Total Cameras</span>
-            <div className="text-3xl font-black text-[#0A2540] mt-1 tracking-tight">{totalCount}</div>
-            <span className="text-[10px] text-emerald-600 font-bold block mt-1 flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[9px] font-black uppercase text-slate-500 block tracking-widest">Total Cameras</span>
+            <div className="text-2xl font-black text-[#0A2540] mt-0.5 tracking-tight">{totalCount}</div>
+            <span className="text-[8px] text-emerald-600 font-bold block mt-0.5 flex items-center gap-1">
+              <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse"></span>
               Across 128 locations
             </span>
           </div>
-          <div className="p-3 bg-slate-50 border border-slate-100 text-[#0A2540] rounded-xl relative z-10 shadow-sm group-hover:bg-[#0A2540] group-hover:text-white transition-colors duration-300">
-            <Camera size={22} />
+          <div className="p-2 bg-slate-50 border border-slate-100 text-[#0A2540] rounded-lg relative z-10 shadow-sm group-hover:bg-[#0A2540] group-hover:text-white transition-colors duration-300">
+            <Camera size={16} />
           </div>
         </div>
 
         {/* Online Cameras */}
-        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-emerald-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
-            <CheckCircle2 size={64} />
-          </div>
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-emerald-500 rounded-xl p-2.5 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Online Cameras</span>
-            <div className="text-3xl font-black text-emerald-600 mt-1 tracking-tight">{onlineCount}</div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(onlineCount/totalCount*100).toFixed(1)}% online</span>
+            <span className="text-[9px] font-black uppercase text-slate-500 block tracking-widest">Online Cameras</span>
+            <div className="text-2xl font-black text-emerald-600 mt-0.5 tracking-tight">{onlineCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">{(onlineCount/totalCount*100).toFixed(1)}% online</span>
           </div>
-          <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl relative z-10 shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
-            <CheckCircle2 size={22} />
+          <div className="p-2 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg relative z-10 shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+            <CheckCircle2 size={16} />
           </div>
         </div>
 
         {/* Offline Cameras */}
-        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-red-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
-            <XCircle size={64} />
-          </div>
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-red-500 rounded-xl p-2.5 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Offline Cameras</span>
-            <div className="text-3xl font-black text-red-600 mt-1 tracking-tight">{offlineCount}</div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(offlineCount/totalCount*100).toFixed(1)}% offline</span>
+            <span className="text-[9px] font-black uppercase text-slate-500 block tracking-widest">Offline Cameras</span>
+            <div className="text-2xl font-black text-red-600 mt-0.5 tracking-tight">{offlineCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">{(offlineCount/totalCount*100).toFixed(1)}% offline</span>
           </div>
-          <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl relative z-10 shadow-sm group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
-            <XCircle size={22} />
+          <div className="p-2 bg-red-50 border border-red-100 text-red-600 rounded-lg relative z-10 shadow-sm group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
+            <XCircle size={16} />
           </div>
         </div>
 
         {/* Maintenance */}
-        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-amber-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
-            <Wrench size={64} />
-          </div>
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-amber-500 rounded-xl p-2.5 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">Maintenance</span>
-            <div className="text-3xl font-black text-amber-500 mt-1 tracking-tight">{maintenanceCount}</div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(maintenanceCount/totalCount*100).toFixed(1)}% of total</span>
+            <span className="text-[9px] font-black uppercase text-slate-500 block tracking-widest">Maintenance</span>
+            <div className="text-2xl font-black text-amber-500 mt-0.5 tracking-tight">{maintenanceCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">{(maintenanceCount/totalCount*100).toFixed(1)}% of total</span>
           </div>
-          <div className="p-3 bg-amber-50 border border-amber-100 text-amber-600 rounded-xl relative z-10 shadow-sm group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
-            <Wrench size={22} />
+          <div className="p-2 bg-amber-50 border border-amber-100 text-amber-600 rounded-lg relative z-10 shadow-sm group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
+            <Wrench size={16} />
           </div>
         </div>
 
         {/* PTZ Cameras */}
-        <div className="bg-white border border-[#E2E8F0] border-t-4 border-t-purple-500 rounded-2xl p-4 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500">
-            <Camera size={64} />
-          </div>
+        <div className="bg-white border border-[#E2E8F0] border-t-2 border-t-purple-500 rounded-xl p-2.5 shadow-sm gov-card-interactive flex items-center justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <span className="text-[10px] font-black uppercase text-slate-500 block tracking-widest">PTZ Cameras</span>
-            <div className="text-3xl font-black text-purple-600 mt-1 tracking-tight">{ptzCount}</div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-1">{(ptzCount/totalCount*100).toFixed(1)}% of total</span>
+            <span className="text-[9px] font-black uppercase text-slate-500 block tracking-widest">PTZ Cameras</span>
+            <div className="text-2xl font-black text-purple-600 mt-0.5 tracking-tight">{ptzCount}</div>
+            <span className="text-[8px] text-slate-500 font-bold block mt-0.5">{(ptzCount/totalCount*100).toFixed(1)}% of total</span>
           </div>
-          <div className="p-3 bg-purple-50 border border-purple-100 text-purple-600 rounded-xl relative z-10 shadow-sm group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
-            <Camera size={22} />
+          <div className="p-2 bg-purple-50 border border-purple-100 text-purple-600 rounded-lg relative z-10 shadow-sm group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
+            <Camera size={16} />
           </div>
         </div>
 
       </div>
 
-      {/* Search and Filters Segment (Screenshot 3) */}
-      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* Search and Filters */}
+      <div className="bg-white border border-[#E2E8F0] rounded-xl p-2 shadow-sm flex items-center justify-between gap-2 flex-shrink-0">
         
         {/* Left filters */}
-        <div className="flex flex-wrap items-center gap-3 flex-1">
+        <div className="flex items-center gap-2 flex-1">
           
           {/* Search bar */}
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-              <Search size={14} />
+          <div className="relative flex-1 min-w-[160px] max-w-xs">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400">
+              <Search size={12} />
             </span>
             <input
               type="text"
               placeholder="Search by camera name, location, or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
+              className="w-full pl-7 pr-3 py-1.5 border border-slate-200 rounded-lg text-[10px] focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
             />
           </div>
 
@@ -190,7 +175,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
+            className="bg-slate-50 border border-[#0A2540]/20 text-[#0A2540] text-[10px] rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-bold cursor-pointer hover:bg-[#0A2540]/5 transition-colors"
           >
             <option>All Status</option>
             <option>Online</option>
@@ -202,7 +187,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           <select
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
+            className="bg-blue-50 border border-blue-200 text-blue-800 text-[10px] rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-bold cursor-pointer hover:bg-blue-100 transition-colors"
           >
             <option>All Locations</option>
             <option>Main St</option>
@@ -216,7 +201,7 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-2 focus:outline-none focus:ring-1 focus:ring-[#0A2540] font-semibold"
+            className="bg-purple-50 border border-purple-200 text-purple-800 text-[10px] rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 font-bold cursor-pointer hover:bg-purple-100 transition-colors"
           >
             <option>All Types</option>
             <option>PTZ</option>
@@ -225,27 +210,30 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           </select>
 
           {/* More filters */}
-          <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-600">
-            <Sliders size={14} />
-            <span>More Filters</span>
+          <button 
+            onClick={() => { setStatusFilter('All Status'); setLocationFilter('All Locations'); setTypeFilter('All Types'); setSearchTerm(''); }}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+          >
+            <Sliders size={11} />
+            <span>Reset All</span>
           </button>
         </div>
 
         {/* Right buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => { setSearchTerm(''); setStatusFilter('All Status'); setLocationFilter('All Locations'); setTypeFilter('All Types'); }}
-            className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition"
+            className="p-1.5 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-600 transition cursor-pointer"
             title="Reset Filters"
           >
-            <RefreshCw size={14} />
+            <RefreshCw size={12} />
           </button>
           
           <button
             onClick={() => setAddModalOpen(true)}
-            className="bg-[#0A2540] hover:bg-[#18385A] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+            className="bg-[#0A2540] hover:bg-[#18385A] text-white px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 shadow-sm transition cursor-pointer"
           >
-            <Plus size={16} />
+            <Plus size={12} />
             <span>Add Camera</span>
           </button>
         </div>
@@ -253,8 +241,8 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
       </div>
 
       {/* Grid/Table List Container */}
-      <div className="bg-white border-2 border-[#0A2540]/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="overflow-x-auto scrollbar-thin">
+      <div className="flex-1 min-h-0 bg-white border border-[#0A2540]/10 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col">
+        <div className="overflow-y-auto flex-1 min-h-0">
           <table className="min-w-full divide-y divide-slate-100 text-left">
             <thead className="bg-[#0A2540] text-[10px] font-black text-slate-100 uppercase tracking-wider">
               <tr>

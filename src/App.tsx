@@ -12,6 +12,7 @@ import { SystemSettingsPage } from './components/SystemSettingsPage';
 import { AnalyticsPage, AuditLogPage } from './components/PlaceholderPages';
 import { TrafficRulesPage } from './components/TrafficRulesPage';
 import { CitizenFeedbackPage } from './components/CitizenFeedbackPage';
+import { VehicleSearchPage } from './components/VehicleSearchPage';
 
 import {
   initialCameras,
@@ -163,9 +164,9 @@ function App() {
         return <TrafficRulesPage />;
       case 'feedback':
         return <CitizenFeedbackPage />;
-      case 'analytics':
-        return <AnalyticsPage />;
-      case 'audit':
+      case 'vehicle-search':
+        return <VehicleSearchPage />;
+      case 'audit-log':
         return <AuditLogPage />;
       default:
         return (

@@ -23,7 +23,9 @@ import {
   ShieldAlert,
   Radio,
   ExternalLink,
-  Award
+  Award,
+  Activity,
+  ClipboardList
 } from 'lucide-react';
 import { StateEmblem } from './StateEmblem';
 
@@ -63,12 +65,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   const menuItems = [
     { id: 'dashboard', label: language === 'hi' ? 'डैशबोर्ड कमांड' : 'Dashboard', icon: LayoutDashboard },
-    { id: 'cameras', label: language === 'hi' ? 'कैमरा ग्रिड' : 'Cameras Registry', icon: CameraIcon },
-    { id: 'live-feeds', label: language === 'hi' ? 'लाइव वीडियो फीड्स' : 'Live HD Feeds', icon: Video },
+    { id: 'cameras', label: language === 'hi' ? 'कैमरा ग्रिड' : 'Cameras', icon: CameraIcon },
+    { id: 'live-feeds', label: language === 'hi' ? 'लाइव वीडियो फीड्स' : 'Live Feeds', icon: Video },
     { id: 'alerts', label: language === 'hi' ? 'सुरक्षा अलर्ट एवं घटनाएं' : 'Alerts & Incidents', icon: AlertTriangle, badge: alertCount },
     { id: 'watchlist', label: language === 'hi' ? 'संदिग्ध वाहन सूची' : 'Vehicle Watch List', icon: Shield },
-    { id: 'reports', label: language === 'hi' ? 'अनुपालन रिपोर्ट' : 'Compliance Reports', icon: FileText },
-    { id: 'map', label: language === 'hi' ? 'भू-स्थानिक रडार' : 'Geospatial Radar', icon: Map },
+    { id: 'reports', label: language === 'hi' ? 'अनुपालन रिपोर्ट' : 'Reports', icon: FileText },
+    { id: 'map', label: language === 'hi' ? 'भू-स्थानिक रडार' : 'Map View', icon: Map },
+    { id: 'vehicle-search', label: language === 'hi' ? 'वाहन खोज' : 'Vehicle Search', icon: Search },
+    { id: 'audit-log', label: language === 'hi' ? 'ऑडिट लॉग' : 'Audit Log', icon: ClipboardList },
     { id: 'settings', label: language === 'hi' ? 'सिस्टम सेटिंग्स' : 'System Settings', icon: Settings }
   ];
 
@@ -108,7 +112,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   };
 
   return (
-    <div className={`min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans select-none relative ${getScaleClass()}`}>
+    <div className={`h-screen w-screen overflow-hidden bg-[#F8FAFC] text-slate-800 flex flex-col font-sans select-none relative ${getScaleClass()}`}>
       
       {/* ── 1. AUTHENTIC SUBTLE BLURRED EMBLEM WATERMARK BACKGROUND ── */}
       <div className="gov-watermark-overlay">
@@ -445,6 +449,38 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
           </div>
 
+          {/* System Performance Engine */}
+          <div className="px-3 pb-2 mt-auto">
+            <button
+              className="w-full flex items-center gap-2 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div className="h-8 w-8 bg-[#0A2540] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm relative overflow-hidden">
+                 <div className="absolute inset-0 bg-blue-500 opacity-20 animate-pulse"></div>
+                 <Activity size={16} className="text-emerald-400 relative z-10" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-[10px] font-black text-[#0A2540] flex items-center justify-between">
+                  <span>TRINETHRA ENGINE</span>
+                  <span className="flex items-center gap-1 text-[8px] text-emerald-600 bg-emerald-100 px-1 rounded uppercase tracking-wide">
+                    <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Live
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-0.5">
+                   <div className="text-[9px] text-slate-500 font-semibold">
+                     Acc: <span className="text-slate-800 font-bold">99.4%</span>
+                   </div>
+                   <div className="text-[9px] text-slate-500 font-semibold">
+                     Err: <span className="text-red-500 font-bold">0.02%</span>
+                   </div>
+                   <div className="text-[9px] text-slate-500 font-semibold">
+                     <span className="text-blue-600 font-bold">120 FPS</span>
+                   </div>
+                </div>
+              </div>
+            </button>
+          </div>
+
           {/* Compact sidebar footer — no wasted space */}
           <div className="px-3 py-2.5 border-t border-[#E2E8F0] bg-[#F8FAFC]">
             <div className="text-[8.5px] text-slate-400 font-semibold text-center leading-tight">
@@ -455,7 +491,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </aside>
 
         {/* Core Page Workspace Area */}
-        <main className="flex-1 overflow-y-auto bg-[#F8FAFC] flex flex-col">
+        <main className="flex-1 overflow-hidden bg-[#F8FAFC] flex flex-col">
           
           {/* Global Alert Bar Ticker */}
           <div className="bg-[#0A2540] border-b border-[#06182C] px-4 sm:px-6 py-2 flex items-center gap-2.5 flex-shrink-0 shadow-2xs">
@@ -474,7 +510,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
 
           {/* Actual Mounted Page Component */}
-          <div className="flex-1 p-4 sm:p-6 relative">
+          <div className="flex-1 p-3 sm:p-4 relative overflow-y-auto flex flex-col min-h-0">
             {children}
           </div>
 
