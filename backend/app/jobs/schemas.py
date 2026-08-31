@@ -16,14 +16,18 @@ class JobType(str, Enum):
 
 class DetectionItem(BaseModel):
     id: str
+    track_id: Optional[int] = None
     plateNumber: str
     confidence: float
     vehicleClass: str
     color: Optional[str] = "Unknown"
     timestamp: Optional[str] = None
+    videoTimestamp: Optional[str] = None
     bbox: Optional[List[float]] = None  # [x1, y1, x2, y2]
     cropPath: Optional[str] = None
     violation: Optional[str] = None
+    plate_locked: Optional[bool] = False
+    skipped_ocr_frames: Optional[int] = 0
 
 class JobCreateResponse(BaseModel):
     job_id: str
@@ -53,4 +57,6 @@ class JobResultResponse(BaseModel):
     fps: Optional[float] = 0.0
     execution_time_seconds: float = 0.0
     detections: List[DetectionItem] = []
+    botsort: Optional[Dict[str, Any]] = None
     summary: Dict[str, Any] = {}
+

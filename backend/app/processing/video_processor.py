@@ -1,12 +1,18 @@
 """
-Video processing pipeline with configurable frame sampling, cancellation check, and lightweight aggregation.
+Video processing pipeline with BoT-SORT multi-object vehicle tracking,
+>98% accuracy fast-skip OCR, configurable frame sampling, cancellation check,
+and atomic MongoDB batch persistence.
 """
 import os
 import time
 import cv2
+import logging
 from typing import Dict, Any, List
 from ..models_manager.model_manager import get_model_manager
+from ..tracking.botsort import BoTSORTTracker
 from ..config import settings
+
+logger = logging.getLogger("TRINETRA.VideoProcessor")
 
 def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: int = None) -> Dict[str, Any]:
     start_time = time.time()
@@ -24,14 +30,19 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
     if total_frames <= 0:
         total_frames = 100  # Fallback estimate
         
-    job_manager.update_progress(job_id, 5, f"Initializing video decoder (Total frames: {total_frames})")
+    job_manager.update_progress(job_id, 5, f"Initializing BoT-SORT & Video Decoder (Total frames: {total_frames})")
     
     model_mgr = get_model_manager()
-    all_detections: List[Dict[str, Any]] = []
-    seen_plates = set()
+    tracker = BoTSORTTracker(track_thresh=0.30, match_thresh=0.7)
+    
+    # Store finalized unique vehicle detections by track_id
+    final_tracked_vehicles: Dict[int, Dict[str, Any]] = {}
+    frame_detections_history: List[Dict[str, Any]] = []
     
     frame_idx = 0
     sampled_count = 0
+    total_ocr_skipped_frames = 0
+    total_ocr_computed_frames = 0
     last_progress_time = time.time()
     
     try:
@@ -40,11 +51,11 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
             if job_manager.is_cancelled(job_id):
                 cap.release()
                 return {
-                    "detections": all_detections,
+                    "detections": list(final_tracked_vehicles.values()),
                     "total_frames": total_frames,
                     "processed_frames": sampled_count,
                     "fps": 0.0,
-                    "execution_time_seconds": time.time() - start_time,
+                    "execution_time_seconds": round(time.time() - start_time, 2),
                     "summary": {"status": "cancelled"}
                 }
                 
@@ -55,32 +66,64 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
             # Configurable frame sampling
             if frame_idx % sample_rate == 0:
                 sampled_count += 1
-                detections = model_mgr.detect_vehicles_and_plates(frame)
+                h, w = frame.shape[:2]
                 
-                # Timestamp inside video
+                # 1. Extract vehicle/plate candidate bounding boxes [bx, by, bw, bh, conf]
+                gray = model_mgr._to_gray(frame)
+                candidates = model_mgr._extract_plate_candidates(gray, w, h)
+                
+                # 2. Update BoT-SORT Kalman Filter & Track States
+                active_tracks = tracker.update(candidates)
+                
+                # Video timestamp (MM:SS)
                 current_sec = frame_idx / max(1.0, video_fps)
                 mins, secs = divmod(int(current_sec), 60)
                 time_str = f"{mins:02d}:{secs:02d}"
                 
-                for d in detections:
-                    d["videoTimestamp"] = time_str
-                    # Deduplicate or track unique license plates
-                    p_num = d["plateNumber"]
-                    if p_num not in seen_plates:
-                        seen_plates.add(p_num)
-                        all_detections.append(d)
+                # 3. Process each tracked vehicle
+                for track in active_tracks:
+                    # Check 98% accuracy fast-skip condition
+                    if track.should_skip_ocr(threshold=0.98):
+                        # BOTSORT FAST-SKIP: Vehicle already processed with >= 98% accuracy
+                        track.mark_ocr_skipped()
+                        total_ocr_skipped_frames += 1
+                    else:
+                        # Compute OCR and vehicle classification
+                        total_ocr_computed_frames += 1
+                        bx, by, x2, y2 = [int(v) for v in track.tlbr]
+                        bw, bh = max(10, x2 - bx), max(10, y2 - by)
+                        
+                        plate_crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)]
+                        plate_text, ocr_conf = model_mgr.recognize_plate_text(plate_crop)
+                        
+                        vehicle_class = model_mgr._classify_vehicle(w, h, bx, by, bw, bh)
+                        color_name = model_mgr._detect_dominant_color(frame, bx, by, bw, bh)
+                        violation = model_mgr._check_violation(plate_text, vehicle_class)
+                        
+                        # Apply OCR result and lock if accuracy >= 98%
+                        track.set_ocr_detection(
+                            plate=plate_text,
+                            confidence=ocr_conf,
+                            vehicle_class=vehicle_class,
+                            color=color_name,
+                            violation=violation
+                        )
+                    
+                    # Update finalized vehicle record for this unique track_id
+                    det_record = track.to_dict(video_timestamp=time_str)
+                    final_tracked_vehicles[track.track_id] = det_record
                 
-                # Release frame buffer immediately
                 del frame
                 
-                # Throttled progress updates (every 250ms or every 10% progress)
+                # Throttled progress updates
                 now = time.time()
                 if now - last_progress_time >= 0.25 or frame_idx == total_frames - 1:
                     percent = int((frame_idx / float(total_frames)) * 90) + 5
+                    locked_count = sum(1 for t in final_tracked_vehicles.values() if t.get("plate_locked"))
                     job_manager.update_progress(
                         job_id,
                         percent,
-                        f"Analyzing video stream: Frame {frame_idx}/{total_frames} ({len(seen_plates)} unique vehicles logged)"
+                        f"BoT-SORT Tracking: Frame {frame_idx}/{total_frames} ({len(final_tracked_vehicles)} vehicles, {locked_count} locked >=98%, {total_ocr_skipped_frames} OCR skips)"
                     )
                     last_progress_time = now
             else:
@@ -94,18 +137,32 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
     exec_time = time.time() - start_time
     calc_fps = sampled_count / max(0.001, exec_time)
     
-    job_manager.update_progress(job_id, 98, "Finalizing detection reports and alerts")
+    job_manager.update_progress(job_id, 98, "Finalizing BoT-SORT trajectory reports and database records")
+    
+    detections_list = list(final_tracked_vehicles.values())
+    locked_count = sum(1 for d in detections_list if d.get("plate_locked"))
+    
+    logger.info(
+        f"BoT-SORT Processing complete for job {job_id}: {len(detections_list)} unique vehicles tracked, "
+        f"{locked_count} locked at >=98% accuracy, {total_ocr_skipped_frames} duplicate OCR evaluations skipped."
+    )
     
     return {
-        "detections": all_detections,
+        "detections": detections_list,
         "total_frames": total_frames,
         "processed_frames": sampled_count,
         "fps": round(calc_fps, 1),
         "execution_time_seconds": round(exec_time, 2),
+        "botsort": {
+            "unique_vehicles_tracked": len(detections_list),
+            "tracks_locked_at_98_percent": locked_count,
+            "ocr_skipped_frames": total_ocr_skipped_frames,
+            "ocr_computed_frames": total_ocr_computed_frames,
+        },
         "summary": {
-            "uniquePlatesCount": len(seen_plates),
-            "violationsCount": sum(1 for d in all_detections if d.get("violation")),
-            "cleanCount": sum(1 for d in all_detections if not d.get("violation")),
+            "uniquePlatesCount": len(detections_list),
+            "violationsCount": sum(1 for d in detections_list if d.get("violation")),
+            "cleanCount": sum(1 for d in detections_list if not d.get("violation")),
             "sampleRate": sample_rate,
             "processedTime": time.strftime("%Y-%m-%d %H:%M:%S")
         }

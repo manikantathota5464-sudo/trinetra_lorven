@@ -126,14 +126,29 @@ const BoundingBoxOverlay: React.FC<{
             >
               <Crosshair size={9} />
               <span>{det.plateNumber}</span>
+              {det.track_id && (
+                <span className="bg-slate-900/80 text-cyan-300 px-1 rounded text-[7px] font-mono">
+                  ID #{det.track_id}
+                </span>
+              )}
               <span className="bg-black/30 text-white px-1 rounded text-[7px] font-mono">
                 {Math.round(det.confidence > 1 ? det.confidence : det.confidence * 100)}% MATCH
               </span>
+              {det.plate_locked && (
+                <span className="bg-cyan-500 text-slate-950 px-1 rounded text-[6.5px] font-black uppercase">
+                  BoT-SORT Locked
+                </span>
+              )}
             </div>
 
             {/* Bottom Tag: Vehicle Class & Violation */}
             <div className="absolute -bottom-5 left-0 flex items-center gap-1 text-[7.5px] font-bold text-white bg-slate-950/90 px-1.5 py-0.5 rounded border border-slate-700 whitespace-nowrap shadow-sm">
               <span>{det.vehicleClass}</span>
+              {det.skipped_ocr_frames ? (
+                <span className="text-cyan-400 font-mono text-[7px]">
+                  ({det.skipped_ocr_frames}f skipped)
+                </span>
+              ) : null}
               {isViolation && (
                 <span className="text-red-400 flex items-center gap-0.5 font-black">
                   • {det.violation}

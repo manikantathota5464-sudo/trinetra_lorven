@@ -5,6 +5,7 @@
 
 export interface DetectionItem {
   id: string;
+  track_id?: number;
   plateNumber: string;
   confidence: number;
   vehicleClass: string;
@@ -13,6 +14,8 @@ export interface DetectionItem {
   videoTimestamp?: string;
   bbox?: [number, number, number, number];
   violation?: string | null;
+  plate_locked?: boolean;
+  skipped_ocr_frames?: number;
 }
 
 export interface JobCreateResponse {

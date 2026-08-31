@@ -141,6 +141,13 @@ def test_pipeline():
 
     assert v_completed, "Video job did not complete in time"
     
+    # Verify BoT-SORT structured result
+    v_res = requests.get(f"{base_url}/api/jobs/{v_run_id}/result").json()
+    print(f"  BoT-SORT tracking summary: {v_res.get('botsort')}")
+    assert "botsort" in v_res, "BoT-SORT tracking results missing"
+    assert v_res["botsort"]["unique_vehicles_tracked"] > 0
+    print(f"  [PASS] BoT-SORT Unique Vehicle Tracking PASSED (Tracked: {v_res['botsort']['unique_vehicles_tracked']})")
+
     # Verify detections returned from MongoDB API
     dets_res = requests.get(f"{base_url}/api/detections?limit=20").json()
     print(f"  MongoDB Detections API count: {dets_res['count']}")

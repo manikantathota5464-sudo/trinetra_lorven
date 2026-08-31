@@ -94,6 +94,7 @@ class JobManager:
                 fps=job.get("fps", 0.0),
                 execution_time_seconds=job.get("execution_time_seconds", 0.0),
                 detections=[DetectionItem(**d) if isinstance(d, dict) else d for d in job.get("detections", [])],
+                botsort=job.get("botsort"),
                 summary=job.get("summary", {})
             )
 
@@ -119,6 +120,7 @@ class JobManager:
                 job["processed_frames"] = results.get("processed_frames", 0)
                 job["fps"] = results.get("fps", 0.0)
                 job["execution_time_seconds"] = results.get("execution_time_seconds", 0.0)
+                job["botsort"] = results.get("botsort")
                 job["summary"] = results.get("summary", {})
 
     def fail_job(self, job_id: str, error_message: str):
