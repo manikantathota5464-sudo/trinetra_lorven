@@ -1,13 +1,14 @@
 """
 Centralized GPU ModelManager for TRINETRA AI Engine.
-Integrates real HuggingFace AI models on NVIDIA GPU (CUDA):
+Integrates real HuggingFace & PaddleOCR AI models on NVIDIA GPU (CUDA):
 1. Vehicle Detector: Perception365/VehicleNet-Y26x (models/vehicle/best.pt)
 2. Plate Detector:   vivekvar/helmet-v5 (models/plate/models/plate_yolo_ft.pt)
-3. ANPR OCR:         Awiros/anpr-ocr (models/ocr/Awiros-ANPR-OCR/model.safetensors)
+3. ANPR OCR:         PaddleOCR (GPU Accelerated)
 """
 import os
 import sys
 import time
+import base64
 import logging
 from typing import Dict, Any, Optional, List, Tuple
 import numpy as np
@@ -20,9 +21,9 @@ except ImportError:
     YOLO = None
 
 try:
-    import safetensors.torch
+    from paddleocr import PaddleOCR
 except ImportError:
-    safetensors = None
+    PaddleOCR = None
 
 from ..config import settings
 
@@ -44,16 +45,15 @@ class ModelManager:
 
         self.device_str = settings.DEVICE
         if self.device_str == "cuda" and not torch.cuda.is_available():
-            logger.error("CUDA requested in settings (DEVICE=cuda) but CUDA is NOT available! Application must fail loudly.")
-            raise RuntimeError("CUDA GPU device requested (DEVICE=cuda) but torch.cuda.is_available() is False. Install CUDA PyTorch or set DEVICE=cpu.")
+            logger.error("CUDA requested in settings (DEVICE=cuda) but CUDA is NOT available!")
+            raise RuntimeError("CUDA GPU device requested (DEVICE=cuda) but torch.cuda.is_available() is False.")
 
         self.device = torch.device("cuda:0" if (self.device_str == "cuda" and torch.cuda.is_available()) else "cpu")
         self.gpu_name = torch.cuda.get_device_name(0) if (self.device.type == "cuda") else "CPU"
 
         self.vehicle_yolo = None
         self.plate_yolo = None
-        self.ocr_safetensors = None
-        self.ocr_dict_chars: List[str] = []
+        self.paddle_ocr = None
 
         self._is_loaded = False
         self._initialized = True
@@ -77,7 +77,7 @@ class ModelManager:
         # 2. plate_yolo_ft
         self._load_plate_detector()
 
-        # 3. Awiros ANPR OCR
+        # 3. PaddleOCR Engine
         self._load_ocr_engine()
 
         # Self-test GPU tensor operation
@@ -116,26 +116,17 @@ class ModelManager:
             raise FileNotFoundError(f"Plate model file not found at {p_path}")
 
     def _load_ocr_engine(self):
-        ocr_path = settings.ANPR_MODEL_PATH
-        dict_path = os.path.join(os.path.dirname(ocr_path), "en_dict.txt")
-
-        if os.path.exists(dict_path):
+        if PaddleOCR is not None:
             try:
-                with open(dict_path, 'r', encoding='utf-8') as f:
-                    self.ocr_dict_chars = [line.strip() for line in f if line.strip()]
-            except Exception:
-                pass
-
-        if os.path.exists(ocr_path) and safetensors is not None:
-            try:
-                self.ocr_safetensors = safetensors.torch.load_file(ocr_path, device=str(self.device))
-                logger.info(f"ANPR OCR (Awiros-ANPR-OCR):       LOADED ✓ ({self.device}) [{len(self.ocr_safetensors)} tensors]")
+                use_gpu = (self.device.type == "cuda")
+                self.paddle_ocr = PaddleOCR(use_angle_cls=False, lang='en', use_gpu=use_gpu)
+                logger.info(f"ANPR OCR (PaddleOCR Engine):     LOADED ✓ ({self.device})")
             except Exception as e:
-                logger.error(f"Failed to load Awiros ANPR OCR safetensors from {ocr_path}: {e}")
+                logger.error(f"Failed to load PaddleOCR engine: {e}")
                 raise
         else:
-            logger.error(f"OCR model safetensors missing at {ocr_path}")
-            raise FileNotFoundError(f"OCR model safetensors not found at {ocr_path}")
+            logger.error("PaddleOCR library not installed.")
+            raise ImportError("PaddleOCR package is required.")
 
     def _run_gpu_self_test(self):
         """Execute a quick warm-up self test on GPU."""
@@ -178,16 +169,13 @@ class ModelManager:
                     "path": settings.PLATE_MODEL_PATH
                 },
                 "anpr": {
-                    "name": "Awiros-ANPR-OCR",
-                    "loaded": self.ocr_safetensors is not None,
+                    "name": "PaddleOCR Engine",
+                    "loaded": self.paddle_ocr is not None,
                     "device": str(self.device),
-                    "path": settings.ANPR_MODEL_PATH
+                    "path": "PaddleOCR GPU"
                 }
             }
         }
-
-    def _to_gray(self, img_bgr: np.ndarray) -> np.ndarray:
-        return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
 
     def detect_vehicles(self, frame_bgr: np.ndarray) -> List[Dict[str, Any]]:
         """Run VehicleNet-Y26x YOLO model inference on GPU."""
@@ -201,7 +189,7 @@ class ModelManager:
                 xyxy = box.xyxy[0].cpu().numpy()
                 cls_id = int(box.cls[0].item())
                 conf = float(box.conf[0].item())
-                cls_name = self.vehicle_yolo.names.get(cls_id, "Vehicle")
+                cls_name = self.vehicle_yolo.names.get(cls_id, "Car")
                 vehicles.append({
                     "bbox": [int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])],
                     "class": cls_name,
@@ -227,12 +215,34 @@ class ModelManager:
         return plates
 
     def recognize_plate_text(self, plate_crop: np.ndarray) -> Tuple[str, float]:
-        """Run Awiros ANPR OCR model on plate crop."""
-        if plate_crop is None or plate_crop.size == 0:
+        """Run PaddleOCR on plate crop image. Returns ONLY actual decoded text."""
+        if self.paddle_ocr is None or plate_crop is None or plate_crop.size == 0:
             return "", 0.0
 
-        # Perform OCR processing on crop
-        # Preprocessing & text decoding
+        try:
+            res = self.paddle_ocr.ocr(plate_crop, cls=False)
+            if not res or not res[0]:
+                return "", 0.0
+
+            texts = []
+            confs = []
+            for line in res[0]:
+                text_info = line[1]
+                t_str = text_info[0].strip().upper()
+                c_val = float(text_info[1])
+                # Filter alphanumeric license plate text
+                clean_t = ''.join(ch for ch in t_str if ch.isalnum() or ch == ' ')
+                if clean_t:
+                    texts.append(clean_t)
+                    confs.append(c_val)
+
+            if texts:
+                final_text = " ".join(texts)
+                avg_conf = sum(confs) / len(confs)
+                return final_text, round(avg_conf, 2)
+        except Exception as e:
+            logger.warning(f"PaddleOCR crop evaluation exception: {e}")
+
         return "", 0.0
 
     def detect_vehicles_and_plates(self, frame_bgr: np.ndarray) -> List[Dict[str, Any]]:
@@ -240,8 +250,8 @@ class ModelManager:
         Unified Real End-to-End Inference Pipeline:
         1. Run GPU Vehicle Detection (VehicleNet-Y26x)
         2. Run GPU Plate Detection (plate_yolo_ft)
-        3. Match plates to vehicles & run OCR on crops
-        Returns ONLY actual model inference detections. ZERO fake data!
+        3. Match plates to vehicles & run PaddleOCR on crops
+        Returns ONLY actual model inference detections. ZERO fake or random data!
         """
         if frame_bgr is None or frame_bgr.size == 0:
             return []
@@ -253,7 +263,6 @@ class ModelManager:
         results = []
         h, w = frame_bgr.shape[:2]
 
-        # Combine real detected plates & vehicles
         for p_idx, plate in enumerate(detected_plates):
             px1, py1, px2, py2 = plate["bbox"]
             plate_crop = frame_bgr[max(0, py1):min(h, py2), max(0, px1):min(w, px2)]
@@ -272,7 +281,7 @@ class ModelManager:
 
             results.append({
                 "id": f"DET-{int(time.time()*1000)%100000}-{p_idx+1}",
-                "plateNumber": plate_text if plate_text else f"PLATE-{px1}-{py1}",
+                "plateNumber": plate_text,  # Only actual OCR text (empty string if unread)
                 "confidence": plate["confidence"],
                 "ocrConfidence": ocr_conf,
                 "vehicleClass": vehicle_class,
@@ -284,7 +293,7 @@ class ModelManager:
                 "inference_time_ms": round((time.time() - start_ts) * 1000, 2)
             })
 
-        # Also include detected vehicles even if plate was unreadable
+        # Include vehicle detections even if plate was unreadable
         if not detected_plates and detected_vehicles:
             for v_idx, v in enumerate(detected_vehicles):
                 vx1, vy1, vx2, vy2 = v["bbox"]
@@ -303,6 +312,60 @@ class ModelManager:
                 })
 
         return results
+
+    def annotate_image(self, frame_bgr: np.ndarray, detections: List[Dict[str, Any]]) -> np.ndarray:
+        """
+        Draw clean YOLO-style labeled bounding box overlays directly onto image frame
+        matching the exact visual layout requested by user (e.g. "Car 0.94", "Bus 0.96", "Truck 0.97").
+        """
+        if frame_bgr is None or frame_bgr.size == 0:
+            return frame_bgr
+
+        annotated = frame_bgr.copy()
+        color_map = {
+            "Car": (0, 0, 230),       # Red
+            "Bus": (0, 165, 255),     # Orange
+            "Truck": (0, 140, 255),   # Dark Orange
+            "Two-wheeler": (255, 0, 0),# Blue
+            "Vehicle": (0, 200, 0)    # Green
+        }
+
+        for det in detections:
+            v_bbox = det.get("vehicleBbox") or det.get("bbox")
+            v_class = det.get("vehicleClass", "Vehicle")
+            v_conf = det.get("vehicleConfidence", det.get("confidence", 0.90))
+            plate = det.get("plateNumber", "")
+
+            color = color_map.get(v_class, (0, 0, 230))
+            vx1, vy1, vx2, vy2 = [int(v) for v in v_bbox]
+
+            # 1. Draw vehicle bounding box
+            cv2.rectangle(annotated, (vx1, vy1), (vx2, vy2), color, 2)
+
+            # 2. Label badge (e.g. "Car 0.94")
+            label_text = f"{v_class} {v_conf:.2f}"
+            if plate:
+                label_text += f" | {plate}"
+
+            (tw, th), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.rectangle(annotated, (vx1, vy1 - th - 6), (vx1 + tw + 8, vy1), color, -1)
+            cv2.putText(annotated, label_text, (vx1 + 4, vy1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+
+            # 3. Draw plate box if available
+            p_bbox = det.get("bbox")
+            if p_bbox and p_bbox != v_bbox:
+                px1, py1, px2, py2 = [int(v) for v in p_bbox]
+                cv2.rectangle(annotated, (px1, py1), (px2, py2), (0, 255, 255), 2)
+
+        return annotated
+
+    def frame_to_base64(self, frame_bgr: np.ndarray) -> str:
+        """Encode BGR image frame to Base64 data URL string."""
+        if frame_bgr is None or frame_bgr.size == 0:
+            return ""
+        _, buffer = cv2.imencode('.jpg', frame_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        encoded = base64.b64encode(buffer).decode('utf-8')
+        return f"data:image/jpeg;base64,{encoded}"
 
 def get_model_manager() -> ModelManager:
     return ModelManager()

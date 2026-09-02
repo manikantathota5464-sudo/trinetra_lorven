@@ -178,12 +178,15 @@ async def run_image_inference(file: UploadFile = File(...)):
 
     model_mgr = get_model_manager()
     detections = model_mgr.detect_vehicles_and_plates(img)
+    annotated_frame = model_mgr.annotate_image(img, detections)
+    annotated_base64 = model_mgr.frame_to_base64(annotated_frame)
     return {
         "status": "success",
         "device": str(model_mgr.device),
         "gpu": model_mgr.gpu_name,
         "detections": detections,
-        "count": len(detections)
+        "count": len(detections),
+        "annotated_image": annotated_base64
     }
 
 @router.post("/inference/video", response_model=JobCreateResponse)
