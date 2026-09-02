@@ -457,6 +457,9 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
   const [maximizedFeed, setMaximizedFeed] = useState<FeedItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // Frame Skipping Option State (1x = All frames, 2x = Skip 1, 5x = Skip 4, 10x = Ultra Fast)
+  const [frameSkipRate, setFrameSkipRate] = useState<number>(5);
+
   // Customize View State (all animations/overlays disabled)
   const [customization, setCustomization] = useState<ViewCustomization>({
     showAnnotations: false,
@@ -544,47 +547,58 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
     }));
 
     try {
-      const job = isVideo
-        ? await jobsApi.uploadVideo(file, targetFeed.name || targetFeed.id)
-        : await jobsApi.uploadImage(file, targetFeed.name || targetFeed.id);
-
-      // 2. Poll progress at safe 700ms intervals
-      const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (status) => {
+      if (isVideo) {
+        // Start real-time live AI video stream
+        const stream = await jobsApi.uploadVideoStream(file, frameSkipRate);
         setFeeds(prev => prev.map(f => {
           if (f.id === targetFeed.id) {
             return {
               ...f,
-              analysisProgress: status.progress,
-              analysisStage: status.stage
+              sourceType: 'video',
+              videoUrl: stream.stream_url,
+              isAnalyzing: false,
+              analysisProgress: 100,
+              analysisStage: 'Live AI Video Stream Active'
             };
           }
           return f;
         }));
-      });
+      } else {
+        const job = await jobsApi.uploadImage(file, targetFeed.name || targetFeed.id);
 
-      // 3. Create local media URL
-      const mediaUrl = URL.createObjectURL(file);
-      const topDet = result.detections?.[0];
+        const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (status) => {
+          setFeeds(prev => prev.map(f => {
+            if (f.id === targetFeed.id) {
+              return {
+                ...f,
+                analysisProgress: status.progress,
+                analysisStage: status.stage
+              };
+            }
+            return f;
+          }));
+        });
 
-      // 4. Update the camera with real-time detections and media
-      setFeeds(prev => prev.map(f => {
-        if (f.id === targetFeed.id) {
-          return {
-            ...f,
-            isAnalyzing: false,
-            analysisProgress: 100,
-            analysisStage: 'Completed',
-            sourceType: isVideo ? 'video' : 'image',
-            videoUrl: isVideo ? mediaUrl : undefined,
-            imageUrl: isImage ? mediaUrl : f.imageUrl,
-            detections: result.detections && result.detections.length > 0 ? result.detections : undefined,
-            detectedPlate: topDet?.plateNumber || f.detectedPlate || 'AP09 AB 1234',
-            confidence: topDet ? Math.round(topDet.confidence * 100) : (f.confidence || 98),
-            vehicleClass: topDet?.vehicleClass || f.vehicleClass || 'Sedan (White)'
-          };
-        }
-        return f;
-      }));
+        const mediaUrl = URL.createObjectURL(file);
+        const topDet = result.detections?.[0];
+
+        setFeeds(prev => prev.map(f => {
+          if (f.id === targetFeed.id) {
+            return {
+              ...f,
+              sourceType: 'image',
+              imageUrl: mediaUrl,
+              thumbnail: mediaUrl,
+              isAnalyzing: false,
+              detections: result.detections && result.detections.length > 0 ? result.detections : undefined,
+              detectedPlate: topDet?.plateNumber || f.detectedPlate || '',
+              confidence: topDet ? Math.round(topDet.confidence * 100) : (f.confidence || 98),
+              vehicleClass: topDet?.vehicleClass || f.vehicleClass || 'Sedan'
+            };
+          }
+          return f;
+        }));
+      }
     } catch (err: any) {
       console.error('Camera upload error:', err);
       setFeeds(prev => prev.map(f => {
@@ -618,46 +632,58 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         setIsProcessing(true);
         setJobError(null);
         setJobProgress(5);
-        setJobStage('Submitting background analysis job...');
 
-        // 1. Submit to FastAPI (returns job_id immediately without waiting for inference)
-        const job = newFeedType === 'video' 
-          ? await jobsApi.uploadVideo(selectedFile, newFeedName || newFeedId)
-          : await jobsApi.uploadImage(selectedFile, newFeedName || newFeedId);
+        if (newFeedType === 'video') {
+          setJobStage('Initiating Live AI Video Stream...');
+          const stream = await jobsApi.uploadVideoStream(selectedFile, frameSkipRate);
+          const newFeed: FeedItem = {
+            id: newFeedId.toUpperCase(),
+            name: newFeedName || `LIVE VIDEO ${newFeedId}`,
+            location: newFeedLocation,
+            status: 'Online',
+            sourceType: 'video',
+            cameraType: 'PTZ',
+            lastSeen: 'Just Now',
+            uptime: 100,
+            videoUrl: stream.stream_url,
+            flowStatus: 'NORMAL'
+          };
+          setFeeds(prev => [newFeed, ...prev]);
+        } else {
+          setJobStage('Submitting background analysis job...');
+          const job = await jobsApi.uploadImage(selectedFile, newFeedName || newFeedId);
+          setActiveJobId(job.job_id);
 
-        setActiveJobId(job.job_id);
-        setJobStage('Job queued for worker execution...');
+          const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (status) => {
+            setJobProgress(status.progress);
+            setJobStage(status.stage);
+          });
 
-        // 2. Poll progress at safe 700ms intervals (does not block UI event loop)
-        const result: JobResultResponse = await jobsApi.pollJob(job.job_id, (status) => {
-          setJobProgress(status.progress);
-          setJobStage(status.stage);
-        });
+          const topDetection = result.detections?.[0];
+          const plate = topDetection?.plateNumber || '';
+          const vClass = topDetection?.vehicleClass || 'Sedan';
+          const conf = topDetection ? Math.round(topDetection.confidence * 100) : 98;
 
-        // 3. Extract top detection or fallback
-        const topDetection = result.detections?.[0];
-        const plate = topDetection?.plateNumber || 'AP09 AB 1234';
-        const vClass = topDetection?.vehicleClass || (newFeedType === 'video' ? 'Hyundai i20' : 'Maruti Brezza');
-        const conf = topDetection ? Math.round(topDetection.confidence * 100) : 98;
+          const newFeed: FeedItem = {
+            id: newFeedId.toUpperCase(),
+            name: newFeedName || `IMAGE Feed ${newFeedId}`,
+            location: newFeedLocation,
+            status: 'Online',
+            sourceType: 'image',
+            cameraType: 'ANPR Cam',
+            lastSeen: 'Just Now',
+            uptime: 100,
+            imageUrl: URL.createObjectURL(selectedFile),
+            thumbnail: URL.createObjectURL(selectedFile),
+            detectedPlate: plate,
+            confidence: conf,
+            vehicleClass: vClass,
+            detections: result.detections,
+            flowStatus: 'NORMAL'
+          };
+          setFeeds(prev => [newFeed, ...prev]);
+        }
 
-        const newFeed: FeedItem = {
-          id: newFeedId.toUpperCase(),
-          name: newFeedName || `${newFeedType.toUpperCase()} Feed ${newFeedId}`,
-          location: newFeedLocation,
-          status: 'Online',
-          sourceType: newFeedType,
-          cameraType: newFeedType === 'video' ? 'PTZ' : newFeedType === 'image' ? 'ANPR Cam' : 'OSINT Scanner',
-          lastSeen: 'Just Now',
-          uptime: 100,
-          detectedPlate: plate,
-          confidence: conf,
-          vehicleClass: vClass,
-          imageUrl: newFeedType === 'image' ? (newFeedUrl || '') : undefined,
-          webUrl: newFeedType === 'webscan' ? (newFeedUrl || `https://surveillance.morth.gov.in/nodes/${newFeedId.toLowerCase()}`) : undefined,
-          flowStatus: 'NORMAL'
-        };
-
-        setFeeds(prev => [newFeed, ...prev]);
         setShowAddModal(false);
         resetModalForm();
       } catch (err: any) {
@@ -852,8 +878,34 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
 
         </div>
 
-        {/* Right Section: Customize View Button + Layout & Add Source */}
+        {/* Right Section: Frame Skipping + Customize View Button + Layout & Add Source */}
         <div className="flex items-center gap-2">
+
+          {/* FRAME SKIPPING OPTION SELECTOR */}
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200" title="Adjust frame skipping rate for ultra-fast live feed AI processing">
+            <span className="text-[9px] font-black text-slate-600 px-1.5 flex items-center gap-1">
+              <Zap size={10} className="text-amber-500" />
+              Skip:
+            </span>
+            {[
+              { rate: 1, label: '1x (All)' },
+              { rate: 2, label: '2x (Fast)' },
+              { rate: 5, label: '5x (Ultra)' },
+              { rate: 10, label: '10x (Max)' },
+            ].map((opt) => (
+              <button
+                key={opt.rate}
+                onClick={() => setFrameSkipRate(opt.rate)}
+                className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer ${
+                  frameSkipRate === opt.rate
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
 
           {/* PROPERLY WORKING CUSTOMIZE VIEW BUTTON */}
           <div className="relative">

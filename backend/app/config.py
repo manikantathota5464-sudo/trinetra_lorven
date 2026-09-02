@@ -1,4 +1,5 @@
 import os
+import torch
 
 class Settings:
     PROJECT_NAME: str = "TRINETRA AI Engine"
@@ -15,7 +16,7 @@ class Settings:
     # Frame sampling & Performance
     FRAME_SAMPLE_RATE: int = 5  # Process every 5th frame for video
     MAX_WORKER_CONCURRENCY: int = 1  # 1 heavy AI job at a time to prevent GPU contention
-    DEVICE: str = os.getenv("DEVICE", "cuda")  # Default to CUDA GPU acceleration
+    DEVICE: str = os.getenv("DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
 
     # Model Weight File Paths
     VEHICLE_MODEL_PATH: str = os.path.join(MODELS_DIR, "vehicle", "best.pt")

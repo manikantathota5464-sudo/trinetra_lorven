@@ -98,6 +98,32 @@ export const jobsApi = {
   },
 
   /**
+   * Submits a video for real-time live AI video streaming.
+   * Returns stream URL for live CCTV feed rendering.
+   */
+  async uploadVideoStream(file: File, sampleRate: number = 5): Promise<{ status: string; stream_id: string; stream_url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`${API_BASE}/api/video/process`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Upload failed' }));
+      throw new Error(err.detail || 'Failed to submit video stream.');
+    }
+
+    const data = await res.json();
+    return {
+      status: data.status,
+      stream_id: data.stream_id,
+      stream_url: `${API_BASE}${data.stream_url}&sample_rate=${sampleRate}`
+    };
+  },
+
+  /**
    * Submits a video for asynchronous background analysis.
    * Returns immediately with job_id. Does NOT wait for inference.
    */

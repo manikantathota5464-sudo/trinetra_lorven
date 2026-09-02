@@ -33,6 +33,7 @@ export const VehicleSearchPage: React.FC = () => {
   const [scanProgress, setScanProgress] = useState(0);
   const [scanStage, setScanStage] = useState('');
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Live real data state (no hardcoded mock data)
   const [resultsList, setResultsList] = useState<VehicleRecord[]>([]);
@@ -179,10 +180,22 @@ export const VehicleSearchPage: React.FC = () => {
             />
           </label>
           <button
+            onClick={async () => {
+              setIsRefreshing(true);
+              await loadFromDatabase();
+              setTimeout(() => setIsRefreshing(false), 400);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF9933] hover:bg-[#e8870e] text-[#0A2540] rounded-lg text-[9px] font-black cursor-pointer transition shadow-xs"
+            title="Reload live detections from MongoDB database"
+          >
+            <RefreshCw size={11} className={isRefreshing ? 'animate-spin' : ''} />
+            <span>Refresh DB</span>
+          </button>
+          <button
             onClick={() => { setPlateQuery(''); setBrandFilter('All Brands'); setTypeFilter('All Types'); setColorFilter('All Colors'); setCameraFilter('All Cameras'); }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 text-[9px] font-bold cursor-pointer"
           >
-            <RefreshCw size={11} /> Reset
+            <RefreshCw size={11} /> Reset Filter
           </button>
           <button
             onClick={() => alert('Exporting results...')}

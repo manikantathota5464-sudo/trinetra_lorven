@@ -32,9 +32,16 @@ def test_pipeline():
     # 1. Start test server
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
-    time.sleep(2.0)
     
     base_url = "http://127.0.0.1:8000"
+    for _ in range(20):
+        try:
+            r = requests.get(f"{base_url}/health")
+            if r.status_code == 200:
+                break
+        except Exception:
+            pass
+        time.sleep(0.5)
     
     # 2. Test /health
     print("\n[TEST 1] Verifying /health endpoint...")
@@ -99,10 +106,12 @@ def test_pipeline():
     print("\n[TEST 4] Testing Video Job & Cancellation...")
     test_video_path = os.path.join(settings.UPLOAD_DIR, "test_sample_video.mp4")
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(test_video_path, fourcc, 10.0, (320, 240))
+    out = cv2.VideoWriter(test_video_path, fourcc, 10.0, (640, 480))
     for i in range(30):
-        f_img = np.zeros((240, 320, 3), dtype=np.uint8)
-        cv2.rectangle(f_img, (50 + i*3, 100), (120 + i*3, 160), (0, 180, 0), -1)
+        f_img = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.rectangle(f_img, (150 + i*2, 180), (490 + i*2, 360), (40, 40, 200), -1)
+        cv2.rectangle(f_img, (260 + i*2, 300), (380 + i*2, 335), (255, 255, 255), -1)
+        cv2.putText(f_img, "AP09 AB 1234", (270 + i*2, 325), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
         out.write(f_img)
     out.release()
 

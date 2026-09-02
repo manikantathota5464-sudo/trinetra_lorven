@@ -143,11 +143,12 @@ class BoTTrack:
 
     def should_skip_ocr(self, threshold: float = 0.98) -> bool:
         """Returns True if this vehicle already has >= 98% accuracy, skipping heavy OCR in current frame."""
-        return self.plate_locked or (self.plate_confidence >= threshold and self.plate_number is not None)
+        return self.plate_locked or (self.plate_confidence >= threshold and bool(self.plate_number))
 
     def set_ocr_detection(self, plate: str, confidence: float, vehicle_class: str, color: str, violation: Optional[str] = None):
-        """Update vehicle detection record and apply 98% accuracy locking."""
-        if confidence > self.plate_confidence or self.plate_number is None:
+        """Update vehicle detection record with highest accuracy selection and 98% accuracy locking."""
+        # Retain highest confidence valid plate text for this unique vehicle track
+        if plate and (confidence > self.plate_confidence or not self.plate_number):
             self.plate_number = plate
             self.plate_confidence = float(confidence)
             self.vehicle_class = vehicle_class
@@ -155,7 +156,7 @@ class BoTTrack:
             self.violation = violation
 
         # Lock plate if >= 98% accuracy (0.98)
-        if self.plate_confidence >= 0.98:
+        if self.plate_confidence >= 0.98 and bool(self.plate_number):
             self.plate_locked = True
 
     def mark_ocr_skipped(self):
@@ -188,10 +189,10 @@ class BoTTrack:
         return {
             "id": f"TRK-{self.track_id:04d}",
             "track_id": self.track_id,
-            "plateNumber": self.plate_number or f"TRK-{self.track_id:04d}",
+            "plateNumber": self.plate_number or "",
             "confidence": round(self.plate_confidence, 2) if self.plate_confidence > 0 else round(self.score, 2),
             "vehicleClass": self.vehicle_class or "Vehicle",
-            "color": self.color or "White",
+            "color": self.color or "Unknown",
             "bbox": [int(x1), int(y1), int(x2), int(y2)],
             "violation": self.violation,
             "videoTimestamp": video_timestamp,

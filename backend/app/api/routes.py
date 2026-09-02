@@ -196,3 +196,58 @@ async def run_video_inference(
 ):
     """Direct GPU video inference endpoint creating an async worker job."""
     return await create_video_job(file=file, source_name=source_name)
+
+@router.post("/video/process")
+async def process_video_stream_upload(file: UploadFile = File(...)):
+    """
+    Accepts video upload for real-time live AI video streaming.
+    Saves file locally and returns stream URL for immediate live feed playback.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No video file uploaded.")
+
+    stream_id = f"STREAM-{int(time.time()*1000)}"
+    save_path = os.path.join(settings.UPLOAD_DIR, f"{stream_id}_{file.filename}")
+    
+    with open(save_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Automatically enqueue background job so video AI detections are persisted into DB
+    job_id = job_manager.create_job(
+        job_type=JobType.VIDEO,
+        file_path=save_path,
+        metadata={"filename": file.filename, "stream_id": stream_id}
+    )
+    ai_worker.enqueue_job(job_id)
+
+    return {
+        "status": "success",
+        "stream_id": stream_id,
+        "job_id": job_id,
+        "video_path": save_path,
+        "stream_url": f"/api/stream/video/{stream_id}?path={save_path}"
+    }
+
+@router.get("/stream/video/{stream_id}")
+async def get_video_ai_mjpeg_stream(stream_id: str, path: Optional[str] = None, sample_rate: int = 5):
+    """
+    Real-time low-latency MJPEG AI video stream endpoint with configurable frame skipping.
+    Decodes uploaded video frame-by-frame, runs GPU inference & BoT-SORT tracking,
+    annotates bounding boxes, and streams live JPEG frames to the frontend.
+    """
+    from fastapi.responses import StreamingResponse
+    from ..processing.stream_processor import get_stream_processor
+
+    if not path or not os.path.exists(path):
+        # Locate saved file by stream_id prefix in upload directory
+        matching_files = [os.path.join(settings.UPLOAD_DIR, f) for f in os.listdir(settings.UPLOAD_DIR) if f.startswith(stream_id)]
+        if matching_files:
+            path = matching_files[0]
+        else:
+            raise HTTPException(status_code=404, detail=f"Stream video file for '{stream_id}' not found.")
+
+    stream_proc = get_stream_processor()
+    return StreamingResponse(
+        stream_proc.generate_mjpeg_stream(video_path=path, stream_id=stream_id, sample_rate=sample_rate),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )

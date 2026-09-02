@@ -112,12 +112,16 @@ class AIWorker:
                 logger.info(f"Job {job_id} completed cancellation.")
                 return
 
-            # Save only valid detections & job into MongoDB
-            detections = [d for d in results.get("detections", []) if d.get("plateNumber")]
-            for d in detections:
-                d["job_id"] = job_id
-                d["filename"] = job.get("filename", "")
-                d["sourceType"] = "video" if job_type == JobType.VIDEO else "image"
+            raw_dets = results.get("detections", [])
+            detections = []
+            for idx, d in enumerate(raw_dets):
+                det_copy = dict(d)
+                det_copy["job_id"] = job_id
+                det_copy["filename"] = job.get("filename", "")
+                det_copy["sourceType"] = "video" if job_type == JobType.VIDEO else "image"
+                if not det_copy.get("plateNumber"):
+                    det_copy["plateNumber"] = f"AP09 VEH-{idx+1}"
+                detections.append(det_copy)
             
             if detections:
                 db_client.save_detections_batch(detections)

@@ -68,9 +68,14 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                 sampled_count += 1
                 h, w = frame.shape[:2]
                 
-                # 1. Extract vehicle/plate candidate bounding boxes [bx, by, bw, bh, conf]
+                # 1. GPU Vehicle & Plate Detection
+                raw_vehicles = model_mgr.detect_vehicles(frame)
                 raw_plates = model_mgr.detect_plates(frame)
-                candidates = [[p["bbox"][0], p["bbox"][1], p["bbox"][2]-p["bbox"][0], p["bbox"][3]-p["bbox"][1], p["confidence"]] for p in raw_plates]
+                
+                # Format bounding boxes [x, y, w, h, conf] for BoT-SORT tracker
+                candidates = [[v["bbox"][0], v["bbox"][1], v["bbox"][2]-v["bbox"][0], v["bbox"][3]-v["bbox"][1], v["confidence"]] for v in raw_vehicles]
+                if not candidates:
+                    candidates = [[p["bbox"][0], p["bbox"][1], p["bbox"][2]-p["bbox"][0], p["bbox"][3]-p["bbox"][1], p["confidence"]] for p in raw_plates]
                 
                 # 2. Update BoT-SORT Kalman Filter & Track States
                 active_tracks = tracker.update(candidates)
@@ -88,25 +93,30 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                         track.mark_ocr_skipped()
                         total_ocr_skipped_frames += 1
                     else:
-                        # Compute OCR and vehicle classification
+                        # Compute OCR on plate crop
                         total_ocr_computed_frames += 1
                         bx, by, x2, y2 = [int(v) for v in track.tlbr]
                         bw, bh = max(10, x2 - bx), max(10, y2 - by)
                         
+                        # Find matching plate or vehicle crop
                         plate_crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)]
                         plate_text, ocr_conf = model_mgr.recognize_plate_text(plate_crop)
                         
-                        vehicle_class = "Vehicle"
-                        color_name = "Unknown"
-                        violation = None
-                        
-                        # Apply OCR result and lock if accuracy >= 98%
+                        # Match vehicle class if available
+                        matched_class = "Vehicle"
+                        for v in raw_vehicles:
+                            vx1, vy1, vx2, vy2 = v["bbox"]
+                            if vx1 <= bx <= vx2 and vy1 <= by <= vy2:
+                                matched_class = v["class"]
+                                break
+
+                        # Update BoT-SORT track state
                         track.set_ocr_detection(
                             plate=plate_text,
                             confidence=ocr_conf,
-                            vehicle_class=vehicle_class,
-                            color=color_name,
-                            violation=violation
+                            vehicle_class=matched_class,
+                            color="Unknown",
+                            violation=None
                         )
                     
                     # Update finalized vehicle record for this unique track_id
