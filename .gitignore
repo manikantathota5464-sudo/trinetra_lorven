@@ -39,6 +39,7 @@ backend/**/__pycache__/
 *.avi
 
 # Large Model Weights & Clones (exceeding GitHub 100MB file limit)
+models/**/*.pt
 models/**/weights/*.pt
 models/**/models/*.pt
 models/**/*.safetensors

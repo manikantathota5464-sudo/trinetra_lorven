@@ -177,6 +177,19 @@ export const jobsApi = {
   },
 
   /**
+   * Retrieves live AI GPU Model Status & VRAM utilization.
+   */
+  async getModelStatus(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/api/models/status`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
+  /**
    * Retrieves stored cameras from MongoDB.
    */
   async getCameras(): Promise<any[]> {

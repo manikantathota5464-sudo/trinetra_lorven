@@ -14,8 +14,18 @@ class Settings:
     
     # Frame sampling & Performance
     FRAME_SAMPLE_RATE: int = 5  # Process every 5th frame for video
-    MAX_WORKER_CONCURRENCY: int = 1  # 1 heavy AI job at a time to prevent GPU/CPU contention
-    DEVICE: str = "cpu"  # "gpu" or "cpu"
+    MAX_WORKER_CONCURRENCY: int = 1  # 1 heavy AI job at a time to prevent GPU contention
+    DEVICE: str = os.getenv("DEVICE", "cuda")  # Default to CUDA GPU acceleration
+
+    # Model Weight File Paths
+    VEHICLE_MODEL_PATH: str = os.path.join(MODELS_DIR, "vehicle", "best.pt")
+    PLATE_MODEL_PATH: str = os.path.join(MODELS_DIR, "plate", "models", "plate_yolo_ft.pt")
+    ANPR_MODEL_PATH: str = os.path.join(MODELS_DIR, "ocr", "Awiros-ANPR-OCR", "model.safetensors")
+
+    # Detection Thresholds
+    CONFIDENCE_THRESHOLD: float = 0.35
+    PLATE_CONFIDENCE_THRESHOLD: float = 0.35
+    OCR_CONFIDENCE_THRESHOLD: float = 0.50
 
     # MongoDB Settings
     MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")

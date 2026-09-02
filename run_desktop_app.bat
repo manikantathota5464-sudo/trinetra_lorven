@@ -6,12 +6,12 @@ echo  React + Tauri Desktop Architecture with Async AI Backend
 echo ============================================================
 
 :: Step 1: Start FastAPI & AI Worker Backend Service
-echo [BACKEND] Starting FastAPI & Long-Lived AI Worker on http://127.0.0.1:8000 ...
-start "TRINETHRA-AI-Backend" /B python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+echo [BACKEND] Starting FastAPI & Long-Lived GPU AI Worker on http://127.0.0.1:8000 ...
+start "TRINETHRA-AI-Backend" /B py -3.12 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 
 :: Wait for backend health confirmation
 echo [HEALTH] Checking AI Engine availability...
-python -c "import urllib.request, time; time.sleep(1.5); res = urllib.request.urlopen('http://127.0.0.1:8000/health'); print('[HEALTH] Backend Active: ' + str(res.status))"
+py -3.12 -c "import urllib.request, time; time.sleep(1.5); res = urllib.request.urlopen('http://127.0.0.1:8000/health'); print('[HEALTH] Backend Active: ' + str(res.status))"
 
 :: Step 2: Build React app bundle if missing
 if not exist "dist\index.html" (
@@ -27,9 +27,9 @@ if not exist "dist\index.html" (
     echo [BUILD] Using existing React build in dist\
 )
 
-:: Step 3: Launch Desktop Shell (WebEngine / Tauri Host)
+:: Step 3: Launch Desktop Shell
 echo [LAUNCH] Starting TRINETHRA Desktop Host Shell...
-python pyside6_app\main.py
+py -3.12 pyside6_app\main.py
 
 echo [SHUTDOWN] TRINETHRA Session Concluded.
 pause
