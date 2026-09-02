@@ -62,7 +62,7 @@ function App() {
       }
 
       const dbCameras = await jobsApi.getCameras();
-      if (dbCameras && dbCameras.length > 0) {
+      if (Array.isArray(dbCameras)) {
         setCameras(dbCameras);
       }
     };
