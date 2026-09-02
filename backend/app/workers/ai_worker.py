@@ -112,14 +112,16 @@ class AIWorker:
                 logger.info(f"Job {job_id} completed cancellation.")
                 return
 
-            # Save detections & job into MongoDB
-            detections = results.get("detections", [])
+            # Save only valid detections & job into MongoDB
+            detections = [d for d in results.get("detections", []) if d.get("plateNumber")]
             for d in detections:
                 d["job_id"] = job_id
                 d["filename"] = job.get("filename", "")
                 d["sourceType"] = "video" if job_type == JobType.VIDEO else "image"
             
-            db_client.save_detections_batch(detections)
+            if detections:
+                db_client.save_detections_batch(detections)
+
             db_client.save_job({
                 "job_id": job_id,
                 "filename": job.get("filename", ""),
@@ -130,7 +132,7 @@ class AIWorker:
             })
 
             self.job_manager.complete_job(job_id, results)
-            logger.info(f"Job {job_id} completed successfully and saved {len(detections)} detections to MongoDB.")
+            logger.info(f"Job {job_id} completed successfully with {len(detections)} valid detections saved to MongoDB.")
             
         except Exception as e:
             err_msg = f"{type(e).__name__}: {str(e)}"

@@ -36,6 +36,7 @@ class MongoDBService:
         # In-memory buffer for zero-downtime if MongoDB starts after backend
         self._memory_detections: List[Dict[str, Any]] = []
         self._memory_jobs: Dict[str, Dict[str, Any]] = {}
+        self._memory_cameras: Dict[str, Dict[str, Any]] = {}
         
         self._initialized = True
         self.connect()
@@ -58,6 +59,7 @@ class MongoDBService:
             self.db.detections.create_index([("timestamp_iso", pymongo.DESCENDING)])
             self.db.detections.create_index([("job_id", pymongo.ASCENDING)])
             self.db.jobs.create_index([("job_id", pymongo.ASCENDING)], unique=True)
+            self.db.cameras.create_index([("id", pymongo.ASCENDING)], unique=True)
             
             logger.info(f"MongoDB connected successfully to '{self.db_name}' at {self.uri}")
             self._flush_memory_to_mongo()
@@ -184,6 +186,59 @@ class MongoDBService:
                 logger.error(f"MongoDB job save failed: {e}")
         self._memory_jobs[doc["job_id"]] = doc
 
+    def save_camera(self, camera: Dict[str, Any]) -> Dict[str, Any]:
+        """Save or update a camera node document."""
+        doc = dict(camera)
+        cam_id = doc.get("id") or f"CAM-{int(time.time()*1000)}"
+        doc["id"] = cam_id
+        if "created_at" not in doc:
+            doc["created_at"] = time.time()
+
+        if self.is_connected and self.db is not None:
+            try:
+                self.db.cameras.update_one(
+                    {"id": cam_id},
+                    {"$set": doc},
+                    upsert=True
+                )
+                return doc
+            except Exception as e:
+                logger.error(f"MongoDB camera save failed: {e}")
+                self.is_connected = False
+
+        self._memory_cameras[cam_id] = doc
+        return doc
+
+    def get_cameras(self) -> List[Dict[str, Any]]:
+        """Fetch all registered cameras."""
+        if self.is_connected and self.db is not None:
+            try:
+                cursor = self.db.cameras.find({}).sort("created_at", pymongo.DESCENDING)
+                results = []
+                for doc in cursor:
+                    doc.pop("_id", None)
+                    results.append(doc)
+                return results
+            except Exception as e:
+                logger.error(f"MongoDB camera query failed: {e}")
+                self.is_connected = False
+
+        return list(self._memory_cameras.values())
+
+    def delete_camera(self, camera_id: str) -> bool:
+        """Delete camera node by ID."""
+        if self.is_connected and self.db is not None:
+            try:
+                res = self.db.cameras.delete_one({"id": camera_id})
+                return res.deleted_count > 0
+            except Exception as e:
+                logger.error(f"MongoDB camera deletion failed: {e}")
+
+        if camera_id in self._memory_cameras:
+            del self._memory_cameras[camera_id]
+            return True
+        return False
+
     def get_db_stats(self) -> Dict[str, Any]:
         """Return live counts of total detections, unique plates, violations."""
         if self.is_connected and self.db is not None:
@@ -191,12 +246,14 @@ class MongoDBService:
                 total_dets = self.db.detections.count_documents({})
                 unique_plates = len(self.db.detections.distinct("plateNumber"))
                 violations = self.db.detections.count_documents({"violation": {"$ne": None}})
+                total_cams = self.db.cameras.count_documents({})
                 return {
                     "connected": True,
                     "db_name": self.db_name,
                     "total_detections": total_dets,
                     "unique_plates": unique_plates,
-                    "total_violations": violations
+                    "total_violations": violations,
+                    "total_cameras": total_cams
                 }
             except Exception as e:
                 logger.error(f"MongoDB stats failed: {e}")
@@ -209,7 +266,8 @@ class MongoDBService:
             "db_name": "in-memory (buffered)",
             "total_detections": len(self._memory_detections),
             "unique_plates": len(plates),
-            "total_violations": viols
+            "total_violations": viols,
+            "total_cameras": len(self._memory_cameras)
         }
 
 db_client = MongoDBService()

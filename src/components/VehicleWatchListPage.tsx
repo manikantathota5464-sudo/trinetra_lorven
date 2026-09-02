@@ -53,7 +53,7 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
       addedBy: 'Admin User (Indlis Admin)',
       locationAdded: newLocation || 'Manual Entry',
       status: 'Active',
-      image: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=120&auto=format&fit=crop&q=60'
+      image: ''
     });
 
     // Reset
@@ -87,11 +87,11 @@ export const VehicleWatchListPage: React.FC<VehicleWatchListPageProps> = ({
     return matchesSearch && matchesWatchType && matchesStatus && matchesColor && matchesBrand;
   });
 
-  // Calculate Metrics from visuals (Screenshot 9)
-  const stolenCount = watchList.filter(v => v.watchType === 'Stolen').length + 351;
-  const clonedCount = watchList.filter(v => v.watchType === 'Cloned').length + 186;
-  const totalCount = stolenCount + clonedCount;
-  const recentAddCount = 24;
+  // Calculate Metrics
+  const stolenCount = watchList.filter(v => v.watchType === 'Stolen').length;
+  const clonedCount = watchList.filter(v => v.watchType === 'Cloned').length;
+  const totalCount = watchList.length;
+  const recentAddCount = watchList.filter(v => v.status === 'Active').length;
 
   const handleExport = () => {
     const csvContent = "data:text/csv;charset=utf-8," 

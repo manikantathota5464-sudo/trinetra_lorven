@@ -364,15 +364,21 @@ class MainWindow(QMainWindow):
         menu = QMenu(self)
         menu.setStyleSheet("background-color: #FFFFFF; border: 1px solid #EDE5D8; padding: 6px; font-size: 11px;")
         
-        title_act = QAction("Active High-Priority Alerts (21)", self)
+        alert_list = getattr(self, 'alerts', INITIAL_ALERTS)
+        title_act = QAction(f"Active High-Priority Alerts ({len(alert_list)})", self)
         title_act.setEnabled(False)
         menu.addAction(title_act)
         menu.addSeparator()
 
-        for alt in INITIAL_ALERTS[:4]:
-            act = QAction(f"⚠️ {alt.type} — {alt.plateNumber} ({alt.location})", self)
-            act.triggered.connect(lambda: self.navigate_to("alerts"))
-            menu.addAction(act)
+        if alert_list:
+            for alt in alert_list[:4]:
+                act = QAction(f"⚠️ {alt.type} — {alt.plateNumber} ({alt.location})", self)
+                act.triggered.connect(lambda: self.navigate_to("alerts"))
+                menu.addAction(act)
+        else:
+            no_alt = QAction("No active high-priority alerts", self)
+            no_alt.setEnabled(False)
+            menu.addAction(no_alt)
 
         menu.addSeparator()
         all_act = QAction("View All Alerts ➔", self)

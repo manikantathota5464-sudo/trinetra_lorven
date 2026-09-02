@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { MainLayout } from './components/MainLayout';
 import { DashboardPage } from './components/DashboardPage';
@@ -13,32 +13,64 @@ import { AnalyticsPage, AuditLogPage } from './components/PlaceholderPages';
 import { TrafficRulesPage } from './components/TrafficRulesPage';
 import { CitizenFeedbackPage } from './components/CitizenFeedbackPage';
 import { VehicleSearchPage } from './components/VehicleSearchPage';
+import { jobsApi } from './services/api/jobsApi';
 
 import {
   initialCameras,
   initialAlerts,
   initialWatchList,
   initialTimelineEvents,
-  recentDetections,
   Camera,
   Alert,
   WatchedVehicle,
-  TimelineEvent
+  TimelineEvent,
+  RecentDetection
 } from './mockData';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Global States (Interactive Data)
+  // Global States (Interactive Real Data)
   const [cameras, setCameras] = useState<Camera[]>(initialCameras);
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [watchList, setWatchList] = useState<WatchedVehicle[]>(initialWatchList);
   const [timeline, setTimeline] = useState<TimelineEvent[]>(initialTimelineEvents);
+  const [liveDetections, setLiveDetections] = useState<RecentDetection[]>([]);
   
   // Accessibility & Settings Context
   const [textSize, setTextSize] = useState<'sm' | 'base' | 'lg'>('base');
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
+
+  // Fetch real detections and cameras from MongoDB backend on load and periodic refresh
+  useEffect(() => {
+    const fetchRealData = async () => {
+      const dbDetections = await jobsApi.getDetections({ limit: 50 });
+      if (dbDetections && dbDetections.length > 0) {
+        const formatted: RecentDetection[] = dbDetections.map((d, index) => ({
+          id: d.id || `RD-${index + 1}`,
+          plateNumber: d.plateNumber || 'UNKNOWN',
+          confidence: Math.round((d.confidence || 0) * 100),
+          time: d.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          vehicleClass: d.vehicleClass || 'Vehicle',
+          location: 'Live ANPR Node',
+          camera: 'CAM-LIVE',
+          details: `${d.color || 'Standard'} • ${d.vehicleClass || 'Vehicle'}`,
+          image: ''
+        }));
+        setLiveDetections(formatted);
+      }
+
+      const dbCameras = await jobsApi.getCameras();
+      if (dbCameras && dbCameras.length > 0) {
+        setCameras(dbCameras);
+      }
+    };
+
+    fetchRealData();
+    const interval = setInterval(fetchRealData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Interactive Actions
   const handleResolveAlert = (id: string) => {
@@ -71,9 +103,16 @@ function App() {
     setTimeline(prev => [newEvent, ...prev]);
   };
 
-  const handleAddCamera = (newCam: Camera) => {
-    setCameras(prev => [newCam, ...prev]);
-    handleAddIncident(`New camera node registered: ${newCam.id} at ${newCam.location}`, 'Info');
+  const handleAddCamera = async (newCam: Camera) => {
+    try {
+      const savedCam = await jobsApi.addCamera(newCam);
+      setCameras(prev => [savedCam || newCam, ...prev.filter(c => c.id !== newCam.id)]);
+      handleAddIncident(`New camera node registered: ${newCam.id} at ${newCam.location}`, 'Info');
+    } catch (err) {
+      // Optimistic state update with local resilience
+      setCameras(prev => [newCam, ...prev.filter(c => c.id !== newCam.id)]);
+      handleAddIncident(`New camera node registered locally: ${newCam.id} at ${newCam.location}`, 'Info');
+    }
   };
 
   const handleAddWatchItem = (newVehicle: WatchedVehicle) => {
@@ -124,7 +163,7 @@ function App() {
           <DashboardPage
             cameras={cameras}
             alerts={alerts}
-            detections={recentDetections}
+            detections={liveDetections}
             timeline={timeline}
             onAddIncident={handleAddIncident}
             setActiveTab={setActiveTab}
@@ -194,3 +233,4 @@ function App() {
 }
 
 export default App;
+

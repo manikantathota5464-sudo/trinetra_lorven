@@ -40,7 +40,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onAddIncident,
   setActiveTab
 }) => {
-  const [selectedCamId, setSelectedCamId] = useState('CAM-1024');
+  const [selectedCamId, setSelectedCamId] = useState(cameras[0]?.id || '');
   const [searchPlate, setSearchPlate] = useState('');
   const [addIncidentOpen, setAddIncidentOpen] = useState(false);
   const [incidentMsg, setIncidentMsg] = useState('');
@@ -63,10 +63,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     setActiveTab('alerts');
   };
 
-  // Status counts for Alerts Overview
-  const criticalCount = alerts.filter(a => a.status === 'Active' && (a.type === 'Stolen Vehicle' || a.type === 'Cloned Vehicle')).length * 3 + 2;
-  const warningCount = alerts.filter(a => a.status === 'Pending').length * 2 + 9;
-  const resolvedCount = alerts.filter(a => a.status === 'Resolved' || a.status === 'Unpaid').length * 4 + 14;
+  // Status counts for Alerts Overview (derived dynamically from real state)
+  const criticalCount = alerts.filter(a => a.status === 'Active' && (a.type === 'Stolen Vehicle' || a.type === 'Cloned Vehicle')).length;
+  const warningCount = alerts.filter(a => a.status === 'Pending').length;
+  const resolvedCount = alerts.filter(a => a.status === 'Resolved' || a.status === 'Unpaid').length;
+
+  const totalCamerasCount = cameras.length;
+  const onlineCamerasCount = cameras.filter(c => c.status === 'Online').length;
+  const activeAlertsCount = alerts.filter(a => a.status === 'Active' || a.status === 'Pending').length;
+  const totalScansCount = detections.length;
 
   return (
     <div className="flex flex-col h-full gap-2 overflow-hidden">
@@ -118,10 +123,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">Total Cameras</span>
             </div>
-            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540]">1,284</div>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-[#0A2540]">{totalCamerasCount}</div>
             <div className="flex items-center gap-1 text-[8.5px] font-bold text-emerald-700">
               <TrendingUp size={10} />
-              <span>+6.2% expansion</span>
+              <span>Live System Grid</span>
             </div>
           </div>
           <div className="p-2 bg-[#0A2540]/5 text-[#0A2540] rounded-xl border border-[#0A2540]/10">
@@ -136,7 +141,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="flex items-center gap-1.5">
                 <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">Live ANPR Nodes</span>
               </div>
-              <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800">1,042</div>
+              <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800">{onlineCamerasCount}</div>
             </div>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
               <Activity size={16} />
@@ -144,11 +149,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <div className="mt-1">
             <div className="flex justify-between text-[8px] font-bold text-slate-600 mb-0.5">
-              <span>81.2% Grid Online</span>
-              <span className="text-emerald-700">Healthy</span>
+              <span>{totalCamerasCount > 0 ? `${((onlineCamerasCount / totalCamerasCount) * 100).toFixed(1)}% Grid Online` : '0% Grid Online'}</span>
+              <span className="text-emerald-700">Operational</span>
             </div>
             <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
-              <div className="bg-emerald-600 h-full rounded-full" style={{ width: '81.2%' }}></div>
+              <div className="bg-emerald-600 h-full rounded-full" style={{ width: totalCamerasCount > 0 ? `${(onlineCamerasCount / totalCamerasCount) * 100}%` : '0%' }}></div>
             </div>
           </div>
         </div>
@@ -158,12 +163,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">Active High Alerts</span>
-              <span className="text-[7.5px] bg-red-100 text-red-700 px-1 py-0.2 rounded font-black uppercase animate-pulse">Critical</span>
+              {activeAlertsCount > 0 && <span className="text-[7.5px] bg-red-100 text-red-700 px-1 py-0.2 rounded font-black uppercase animate-pulse">Active</span>}
             </div>
-            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600">21</div>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-red-600">{activeAlertsCount}</div>
             <div className="text-[8.5px] font-bold text-red-600 flex items-center gap-1">
               <AlertTriangle size={10} />
-              <span>Requires dispatch</span>
+              <span>{activeAlertsCount > 0 ? 'Requires dispatch' : 'No active alerts'}</span>
             </div>
           </div>
           <div className="p-2 bg-red-50 text-red-600 rounded-xl border border-red-100">
@@ -175,12 +180,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="bg-white border-l-4 border-l-[#C59B27] border border-slate-200 rounded-xl p-2.5 shadow-sm flex items-center justify-between gov-card-interactive">
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">Total Scans (24h)</span>
+              <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">Total Scans</span>
             </div>
-            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800">12,846</div>
+            <div className="text-2xl font-black tracking-tight group-hover:scale-105 transition-transform origin-left text-slate-800">{totalScansCount}</div>
             <div className="flex items-center gap-1 text-[8.5px] font-bold text-emerald-700">
               <TrendingUp size={10} />
-              <span>+8.4% throughput</span>
+              <span>Live ANPR Storage</span>
             </div>
           </div>
           <div className="p-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100">
@@ -210,37 +215,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto min-h-0 space-y-2 pr-1">
-            {detections.map((det) => (
-              <div
-                key={det.id}
-                className="flex items-center justify-between p-2 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 border border-slate-100 rounded-lg transition cursor-pointer group"
-                onClick={() => {
-                  if (det.id === 'RD-001') setSelectedCamId('CAM-1024');
-                  else if (det.id === 'RD-003') setSelectedCamId('CAM-0456');
-                  else if (det.id === 'RD-005') setSelectedCamId('CAM-0932');
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <img
-                    src={det.image}
-                    alt={det.plateNumber}
-                    className="h-8 w-10 rounded object-cover border border-slate-200 flex-shrink-0"
-                  />
-                  <div className="leading-tight">
-                    <div className="text-[9px] font-black font-mono tracking-tight bg-slate-100 group-hover:bg-amber-100/50 px-1.5 py-0.5 rounded border border-slate-200 text-slate-900 inline-block transition">
-                      {det.plateNumber}
+            {detections.length > 0 ? (
+              detections.map((det) => (
+                <div
+                  key={det.id}
+                  className="flex items-center justify-between p-2 hover:bg-slate-50 hover:border-[#0A2540] transition-colors duration-300 border border-slate-100 rounded-lg transition cursor-pointer group"
+                  onClick={() => {
+                    if (det.camera) setSelectedCamId(det.camera);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    {det.image ? (
+                      <img
+                        src={det.image}
+                        alt={det.plateNumber}
+                        className="h-8 w-10 rounded object-cover border border-slate-200 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-8 w-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-[8px] font-black text-slate-400">
+                        ANPR
+                      </div>
+                    )}
+                    <div className="leading-tight">
+                      <div className="text-[9px] font-black font-mono tracking-tight bg-slate-100 group-hover:bg-amber-100/50 px-1.5 py-0.5 rounded border border-slate-200 text-slate-900 inline-block transition">
+                        {det.plateNumber}
+                      </div>
+                      <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">
+                        {det.details}
+                      </span>
                     </div>
-                    <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">
-                      {det.details}
-                    </span>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-[9px] font-black text-emerald-700">{det.confidence}% match</div>
+                    <span className="text-[8px] text-slate-400 font-bold block">{det.time}</span>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="text-[9px] font-black text-emerald-700">{det.confidence}% match</div>
-                  <span className="text-[8px] text-slate-400 font-bold block">{det.time}</span>
-                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-slate-400 text-xs font-semibold">
+                No live ANPR scans recorded yet.<br/>Upload video or image in Live Feeds to run AI detection.
               </div>
-            ))}
+            )}
           </div>
 
           <button
@@ -463,34 +478,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
 
             {/* Selected Camera Details Floating Drawer */}
-            <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur border border-slate-200 rounded-lg p-1.5 shadow-lg flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img
-                  src={activeCamera.thumbnail}
-                  alt={activeCamera.id}
-                  className="h-7 w-9 rounded object-cover border border-slate-200 bg-slate-200"
-                />
-                <div className="leading-tight">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-slate-800">{activeCamera.id}</span>
-                    <span className={`text-[7px] font-black px-1 py-0.2 rounded-full uppercase ${
-                      activeCamera.status === 'Online' ? 'bg-emerald-100 text-emerald-800' :
-                      activeCamera.status === 'Offline' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {activeCamera.status}
-                    </span>
+            {activeCamera ? (
+              <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur border border-slate-200 rounded-lg p-1.5 shadow-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {activeCamera.thumbnail ? (
+                    <img
+                      src={activeCamera.thumbnail}
+                      alt={activeCamera.id}
+                      className="h-7 w-9 rounded object-cover border border-slate-200 bg-slate-200"
+                    />
+                  ) : (
+                    <div className="h-7 w-9 rounded bg-slate-200 border border-slate-300 flex items-center justify-center text-[7px] font-black text-slate-500">
+                      CAM
+                    </div>
+                  )}
+                  <div className="leading-tight">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black text-slate-800">{activeCamera.id}</span>
+                      <span className={`text-[7px] font-black px-1 py-0.2 rounded-full uppercase ${
+                        activeCamera.status === 'Online' ? 'bg-emerald-100 text-emerald-800' :
+                        activeCamera.status === 'Offline' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {activeCamera.status}
+                      </span>
+                    </div>
+                    <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">{activeCamera.location}</span>
                   </div>
-                  <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">{activeCamera.location}</span>
                 </div>
+                <button
+                  onClick={() => setActiveTab('live-feeds')}
+                  className="bg-[#0A2540] hover:bg-[#163E66] text-white px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm cursor-pointer"
+                >
+                  <Eye size={10} />
+                  Live
+                </button>
               </div>
-              <button
-                onClick={() => setActiveTab('live-feeds')}
-                className="bg-[#0A2540] hover:bg-[#163E66] text-white px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm cursor-pointer"
-              >
-                <Eye size={10} />
-                Live
-              </button>
-            </div>
+            ) : (
+              <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur border border-slate-200 rounded-lg p-1.5 shadow-lg text-[9px] font-bold text-slate-500 text-center">
+                No active camera registered. Add a camera node to start monitoring.
+              </div>
+            )}
           </div>
 
         </div>

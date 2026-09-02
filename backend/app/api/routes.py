@@ -129,3 +129,25 @@ async def get_detections(
 async def get_system_stats():
     """Query live MongoDB database storage metrics."""
     return db_client.get_db_stats()
+
+@router.get("/cameras")
+async def get_cameras():
+    """Query registered camera nodes from MongoDB."""
+    cameras = db_client.get_cameras()
+    return {"count": len(cameras), "cameras": cameras}
+
+@router.post("/cameras")
+async def create_camera(payload: dict):
+    """Store or register a new camera node in MongoDB."""
+    if not payload.get("name") and not payload.get("id"):
+        raise HTTPException(status_code=400, detail="Camera payload requires 'id' or 'name'.")
+    saved = db_client.save_camera(payload)
+    return {"message": "Camera registered successfully.", "camera": saved}
+
+@router.delete("/cameras/{camera_id}")
+async def delete_camera(camera_id: str):
+    """Delete a registered camera node by ID."""
+    success = db_client.delete_camera(camera_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Camera not found.")
+    return {"message": f"Camera '{camera_id}' removed.", "success": True}

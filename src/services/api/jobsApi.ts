@@ -177,6 +177,46 @@ export const jobsApi = {
   },
 
   /**
+   * Retrieves stored cameras from MongoDB.
+   */
+  async getCameras(): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE}/api/cameras`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.cameras || [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Persists a newly added camera to MongoDB.
+   */
+  async addCamera(camera: any): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/cameras`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(camera),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to save camera' }));
+      throw new Error(err.detail || 'Failed to persist camera node in database.');
+    }
+
+    const data = await res.json();
+    return data.camera;
+  },
+
+  /**
+   * Removes a camera from MongoDB.
+   */
+  async deleteCamera(id: string): Promise<void> {
+    await fetch(`${API_BASE}/api/cameras/${id}`, { method: 'DELETE' });
+  },
+
+  /**
    * Helper that polls job progress at a healthy interval (e.g. 700ms) without overloading React or network.
    */
   async pollJob(

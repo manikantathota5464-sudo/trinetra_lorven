@@ -49,9 +49,9 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
       location: newCamLoc,
       status: newCamStatus,
       type: newCamType,
-      lastSeen: '08:19:00 AM, 18 Aug, 2026',
-      uptime: newCamStatus === 'Online' ? 99.8 : newCamStatus === 'Maintenance' ? 96.5 : 0,
-      thumbnail: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=120&auto=format&fit=crop&q=60'
+      lastSeen: new Date().toLocaleString(),
+      uptime: newCamStatus === 'Online' ? 100 : newCamStatus === 'Maintenance' ? 50 : 0,
+      thumbnail: ''
     });
 
     // Reset
@@ -74,11 +74,11 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
   });
 
   // Calculate Summary metrics
-  const totalCount = cameras.length + 1156; // Mock to scale it to the visual total of 1284
-  const onlineCount = cameras.filter(c => c.status === 'Online').length + 1034;
-  const offlineCount = cameras.filter(c => c.status === 'Offline').length + 241;
-  const maintenanceCount = cameras.filter(c => c.status === 'Maintenance').length + 16;
-  const ptzCount = cameras.filter(c => c.type === 'PTZ').length + 307;
+  const totalCount = cameras.length;
+  const onlineCount = cameras.filter(c => c.status === 'Online').length;
+  const offlineCount = cameras.filter(c => c.status === 'Offline').length;
+  const maintenanceCount = cameras.filter(c => c.status === 'Maintenance').length;
+  const ptzCount = cameras.filter(c => c.type === 'PTZ').length;
 
   return (
     <div className="flex flex-col h-full gap-2 overflow-hidden">
@@ -338,9 +338,9 @@ export const CamerasPage: React.FC<CamerasPageProps> = ({
           </table>
         </div>
 
-        {/* Table Pagination (Screenshot 3 footer) */}
+        {/* Table Pagination */}
         <div className="px-6 py-4 bg-[#FAF8F5] border-t border-slate-100 flex items-center justify-between flex-wrap gap-4 text-xs font-semibold text-slate-500">
-          <span>Showing 1 to {filteredCameras.length} of {cameras.length + 120} cameras</span>
+          <span>Showing {filteredCameras.length > 0 ? 1 : 0} to {filteredCameras.length} of {cameras.length} cameras</span>
           <div className="flex items-center gap-2">
             <button className="p-1 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 text-slate-400">
               <ChevronLeft size={16} />

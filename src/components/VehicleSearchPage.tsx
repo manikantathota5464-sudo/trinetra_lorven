@@ -374,8 +374,8 @@ export const VehicleSearchPage: React.FC = () => {
                   <td className="px-3 py-2.5"><input type="checkbox" className="rounded border-slate-300" /></td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-10 h-6 bg-slate-100 rounded overflow-hidden flex-shrink-0">
-                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=40&h=24&q=80" alt="car" className="w-full h-full object-cover" />
+                      <div className="w-10 h-6 bg-slate-200 rounded flex-shrink-0 flex items-center justify-center text-[7px] font-black text-slate-500">
+                        ANPR
                       </div>
                       <div>
                         <div className="font-black text-slate-800 text-[11px]">{row.plate}</div>

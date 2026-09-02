@@ -77,95 +77,8 @@ const BoundingBoxOverlay: React.FC<{
   detectedPlate?: string;
   confidence?: number;
   vehicleClass?: string;
-}> = ({ detections, showAnnotations, detectedPlate, confidence, vehicleClass }) => {
-  if (!showAnnotations) return null;
-
-  const items: DetectionItem[] = detections && detections.length > 0
-    ? detections
-    : detectedPlate
-    ? [{
-        id: 'det-scanned',
-        plateNumber: detectedPlate,
-        confidence: (confidence || 98) / 100,
-        vehicleClass: vehicleClass || 'Vehicle Detected',
-        bbox: [22, 45, 78, 85],
-        violation: detectedPlate.includes('1234') ? 'Speeding (78 km/h)' : null
-      }]
-    : [];
-
-  if (items.length === 0) return null;
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
-      {items.map((det, idx) => {
-        const rawBox = det.bbox || [20 + idx * 10, 40 + idx * 5, 75, 82];
-        const [x1, y1, x2, y2] = rawBox;
-        const isNorm = x2 <= 100 && y2 <= 100;
-        const left = isNorm ? `${x1}%` : `${Math.min(75, Math.max(8, (x1 / 640) * 100))}%`;
-        const top = isNorm ? `${y1}%` : `${Math.min(70, Math.max(12, (y1 / 480) * 100))}%`;
-        const width = isNorm ? `${Math.max(22, x2 - x1)}%` : `${Math.min(55, Math.max(22, ((x2 - x1) / 640) * 100))}%`;
-        const height = isNorm ? `${Math.max(26, y2 - y1)}%` : `${Math.min(55, Math.max(26, ((y2 - y1) / 480) * 100))}%`;
-
-        const isViolation = !!det.violation;
-
-        return (
-          <div
-            key={det.id || idx}
-            style={{ left, top, width, height }}
-            className={`absolute border-2 rounded transition-all duration-300 ${
-              isViolation
-                ? 'border-red-500 bg-red-950/20 shadow-[0_0_12px_rgba(239,68,68,0.6)] animate-pulse'
-                : 'border-emerald-400 bg-emerald-950/15 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
-            }`}
-          >
-            {/* Top Tag: License Plate + Confidence */}
-            <div
-              className={`absolute -top-5 left-0 flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded shadow-md whitespace-nowrap ${
-                isViolation ? 'bg-red-600 text-white' : 'bg-emerald-500 text-slate-950'
-              }`}
-            >
-              <Crosshair size={9} />
-              <span>{det.plateNumber}</span>
-              {det.track_id && (
-                <span className="bg-slate-900/80 text-cyan-300 px-1 rounded text-[7px] font-mono">
-                  ID #{det.track_id}
-                </span>
-              )}
-              <span className="bg-black/30 text-white px-1 rounded text-[7px] font-mono">
-                {Math.round(det.confidence > 1 ? det.confidence : det.confidence * 100)}% MATCH
-              </span>
-              {det.plate_locked && (
-                <span className="bg-cyan-500 text-slate-950 px-1 rounded text-[6.5px] font-black uppercase">
-                  BoT-SORT Locked
-                </span>
-              )}
-            </div>
-
-            {/* Bottom Tag: Vehicle Class & Violation */}
-            <div className="absolute -bottom-5 left-0 flex items-center gap-1 text-[7.5px] font-bold text-white bg-slate-950/90 px-1.5 py-0.5 rounded border border-slate-700 whitespace-nowrap shadow-sm">
-              <span>{det.vehicleClass}</span>
-              {det.skipped_ocr_frames ? (
-                <span className="text-cyan-400 font-mono text-[7px]">
-                  ({det.skipped_ocr_frames}f skipped)
-                </span>
-              ) : null}
-              {isViolation && (
-                <span className="text-red-400 flex items-center gap-0.5 font-black">
-                  • {det.violation}
-                </span>
-              )}
-            </div>
-
-            {/* Corner Reticles */}
-            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t-2 border-l-2 border-white" />
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 border-t-2 border-r-2 border-white" />
-            <div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 border-b-2 border-l-2 border-white" />
-            <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 border-b-2 border-r-2 border-white" />
-          </div>
-        );
-      })}
-    </div>
-  );
+}> = () => {
+  return null;
 };
 
 // -------------------------------------------------------------
@@ -177,164 +90,12 @@ const SimulatedCCTVFeed: React.FC<{
   onMaximize: (feed: FeedItem) => void;
   onUploadSource?: (feed: FeedItem, file: File) => void;
 }> = ({ feed, customization, onMaximize, onUploadSource }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const animationRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (feed.videoUrl) return; // Use real HTML5 video if available
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = 320;
-    canvas.height = 180;
-
-    let carX = Math.random() * 200;
-    let carY = 110;
-    let carSpeed = 2 + Math.random() * 2.5;
-    let carColor = Math.random() > 0.5 ? '#E11D48' : '#2563EB';
-
-    let scannerY = 0;
-    let scannerDirection = 1;
-
-    const draw = () => {
-      if (!ctx || !canvas) return;
-
-      // 1. Draw highway landscape
-      ctx.fillStyle = '#1E293B';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Sky
-      ctx.fillStyle = '#0F172A';
-      ctx.fillRect(0, 0, canvas.width, 60);
-
-      // Distant mountains
-      ctx.fillStyle = '#334155';
-      ctx.beginPath();
-      ctx.moveTo(0, 60);
-      ctx.lineTo(80, 40);
-      ctx.lineTo(150, 60);
-      ctx.lineTo(240, 35);
-      ctx.lineTo(320, 60);
-      ctx.closePath();
-      ctx.fill();
-
-      // Road markings
-      ctx.strokeStyle = '#F1F5F9';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([10, 15]);
-      ctx.beginPath();
-      ctx.moveTo(0, 120);
-      ctx.lineTo(320, 120);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Road borders
-      ctx.strokeStyle = '#FCD34D';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, 90);
-      ctx.lineTo(320, 90);
-      ctx.moveTo(0, 150);
-      ctx.lineTo(320, 150);
-      ctx.stroke();
-
-      // 2. Draw Moving Car
-      if (isPlaying) {
-        carX += carSpeed;
-        if (carX > canvas.width + 40) {
-          carX = -40;
-          carSpeed = 2 + Math.random() * 2;
-          carColor = Math.random() > 0.5 ? '#E11D48' : '#3B82F6';
-        }
-      }
-
-      // Draw car body
-      ctx.fillStyle = carColor;
-      ctx.fillRect(carX, carY, 35, 14);
-      // Car cabin
-      ctx.fillStyle = '#94A3B8';
-      ctx.fillRect(carX + 8, carY - 8, 18, 9);
-      // Wheels
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(carX + 8, carY + 14, 4, 0, Math.PI * 2);
-      ctx.arc(carX + 27, carY + 14, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Heatmap Overlay
-      if (customization.showHeatmap) {
-        const grad = ctx.createRadialGradient(canvas.width / 2, 120, 10, canvas.width / 2, 120, 90);
-        grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
-        grad.addColorStop(0.5, 'rgba(245, 158, 11, 0.3)');
-        grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      // Timestamp & ID Header Overlay
-      if (customization.showTimestamp) {
-        const now = new Date();
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-        ctx.fillRect(0, 0, canvas.width, 24);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '8px monospace';
-        ctx.fillText(`${feed.id} - ${feed.location}`, 8, 14);
-        ctx.fillText(now.toLocaleTimeString(), 220, 14);
-
-        ctx.fillStyle = '#EF4444';
-        ctx.beginPath();
-        ctx.arc(308, 11, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Speed radar line overlay
-      if (customization.showRadar) {
-        if (isPlaying) {
-          scannerY += 1.5 * scannerDirection;
-          if (scannerY > canvas.height || scannerY < 0) {
-            scannerDirection *= -1;
-          }
-        }
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(0, scannerY);
-        ctx.lineTo(canvas.width, scannerY);
-        ctx.stroke();
-      }
-
-      // Flow rate overlay
-      if (customization.showFlowRate) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-        ctx.fillRect(8, 160, 90, 14);
-        ctx.fillStyle = '#10B981';
-        ctx.font = 'bold 8px sans-serif';
-        ctx.fillText(`FLOW: ${feed.flowStatus || 'NORMAL'}`, 12, 170);
-      }
-
-      if (isPlaying) {
-        animationRef.current = requestAnimationFrame(draw);
-      }
-    };
-
-    draw();
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [isPlaying, feed, customization]);
 
   return (
     <div className="bg-slate-950 rounded-xl overflow-hidden shadow-md border border-slate-800 relative group">
-      {/* Real Video or Simulated Canvas */}
+      {/* Real Video or Clean Camera Backdrop */}
       {feed.videoUrl ? (
         <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden cursor-pointer" onClick={() => onMaximize(feed)}>
           <video
@@ -345,40 +106,23 @@ const SimulatedCCTVFeed: React.FC<{
             playsInline
             className="w-full h-full object-cover block"
           />
-          {/* Real-time Bounding Box Detections Overlay */}
-          <BoundingBoxOverlay
-            detections={feed.detections}
-            showAnnotations={customization.showAnnotations}
-            detectedPlate={feed.detectedPlate}
-            confidence={feed.confidence}
-            vehicleClass={feed.vehicleClass}
+        </div>
+      ) : feed.thumbnail || feed.imageUrl ? (
+        <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden cursor-pointer" onClick={() => onMaximize(feed)}>
+          <img
+            src={feed.thumbnail || feed.imageUrl}
+            alt={feed.name}
+            className="w-full h-full object-cover block"
           />
         </div>
       ) : (
-        <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden">
-          <canvas ref={canvasRef} className="w-full h-full block bg-slate-900 cursor-pointer" onClick={() => onMaximize(feed)} />
-          {/* Real-time Bounding Box Detections Overlay */}
-          <BoundingBoxOverlay
-            detections={feed.detections}
-            showAnnotations={customization.showAnnotations}
-            detectedPlate={feed.detectedPlate}
-            confidence={feed.confidence}
-            vehicleClass={feed.vehicleClass}
-          />
+        <div className="relative aspect-[16/9] bg-slate-900 flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden" onClick={() => onMaximize(feed)}>
+          <Video size={36} className="text-slate-600 mb-2" />
+          <span className="text-xs font-bold text-slate-300">{feed.name}</span>
+          <span className="text-[10px] text-slate-500 font-mono mt-1">{feed.location}</span>
         </div>
       )}
 
-      {/* Real-time AI Worker Scanning HUD */}
-      {feed.isAnalyzing && (
-        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-30 animate-in fade-in duration-200">
-          <Loader2 size={24} className="text-[#FF9933] animate-spin mb-2" />
-          <span className="text-[11px] font-black text-white tracking-wide">{feed.analysisStage || 'AI Model Analyzing...'}</span>
-          <div className="w-44 bg-slate-800 rounded-full h-2 mt-2 overflow-hidden border border-slate-700">
-            <div className="bg-gradient-to-r from-[#FF9933] to-emerald-400 h-full transition-all duration-300" style={{ width: `${feed.analysisProgress || 10}%` }} />
-          </div>
-          <span className="text-[9px] font-mono text-emerald-400 font-bold mt-1">{feed.analysisProgress || 10}% Processed</span>
-        </div>
-      )}
 
       {/* Top Left Badges */}
       <div className="absolute top-3 left-3 flex items-center gap-1.5 pointer-events-none z-20">
@@ -470,7 +214,7 @@ const SimulatedImageFeed: React.FC<{
     }, 600);
   };
 
-  const sampleImage = feed.imageUrl || feed.thumbnail || 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=80';
+  const sampleImage = feed.imageUrl || feed.thumbnail || '';
 
   return (
     <div className="bg-slate-950 rounded-xl overflow-hidden shadow-md border border-purple-900/40 relative group">
@@ -546,17 +290,7 @@ const SimulatedImageFeed: React.FC<{
           </div>
         )}
 
-        {/* Real-time AI Worker Scanning HUD */}
-        {feed.isAnalyzing && (
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-30 animate-in fade-in duration-200">
-            <Loader2 size={24} className="text-[#FF9933] animate-spin mb-2" />
-            <span className="text-[11px] font-black text-white tracking-wide">{feed.analysisStage || 'AI OCR Engine Processing...'}</span>
-            <div className="w-44 bg-slate-800 rounded-full h-2 mt-2 overflow-hidden border border-slate-700">
-              <div className="bg-gradient-to-r from-[#FF9933] to-emerald-400 h-full transition-all duration-300" style={{ width: `${feed.analysisProgress || 10}%` }} />
-            </div>
-            <span className="text-[9px] font-mono text-emerald-400 font-bold mt-1">{feed.analysisProgress || 10}% Processed</span>
-          </div>
-        )}
+        {/* Real-time AI Worker Processing */}
       </div>
 
       {/* Controls Bar */}
@@ -693,112 +427,26 @@ interface LiveFeedsPageProps {
 }
 
 export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
-  // Convert standard initial cameras into multi-source feed items
-  const initialFeeds: FeedItem[] = [
-    {
-      id: 'CAM-1024',
-      name: 'Main St & 5th Ave CCTV',
-      location: 'Main St & 5th Ave',
-      status: 'Online',
-      sourceType: 'video',
-      cameraType: 'PTZ',
-      lastSeen: '08:19:23 AM',
-      uptime: 99.8,
-      flowStatus: 'NORMAL'
-    },
-    {
-      id: 'ANPR-0785',
-      name: 'I-9 Overpass High-Res Snapshot',
-      location: 'I-9 Overpass',
-      status: 'Online',
-      sourceType: 'image',
-      cameraType: 'ANPR Cam',
-      lastSeen: '08:19:18 AM',
-      uptime: 100,
-      imageUrl: 'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?w=600&auto=format&fit=crop&q=80',
-      flowStatus: 'HEAVY'
-    },
-    {
-      id: 'SCAN-0456',
-      name: 'Harbor Rd WebScan OSINT',
-      location: 'Harbor Rd Exit',
-      status: 'Online',
-      sourceType: 'webscan',
-      cameraType: 'OSINT Scanner',
-      lastSeen: '08:19:00 AM',
-      uptime: 99.4,
-      webUrl: 'https://surveillance.morth.gov.in/nodes/harbor-0456',
-      ipAddress: '10.240.18.92',
-      flowStatus: 'NORMAL'
-    },
-    {
-      id: 'CAM-1120',
-      name: 'Junction 9 CCTV Grid',
-      location: 'Junction 9',
-      status: 'Online',
-      sourceType: 'video',
-      cameraType: 'PTZ',
-      lastSeen: '08:19:10 AM',
-      uptime: 99.6,
-      flowStatus: 'NORMAL'
-    },
-    {
-      id: 'ANPR-0633',
-      name: 'Riverside Park Snapshot',
-      location: 'Riverside Park',
-      status: 'Online',
-      sourceType: 'image',
-      cameraType: 'ANPR Cam',
-      lastSeen: '08:19:05 AM',
-      uptime: 99.9,
-      imageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&auto=format&fit=crop&q=80',
-      flowStatus: 'NORMAL'
-    },
-    {
-      id: 'SCAN-0932',
-      name: 'City Center WebScan Radar',
-      location: 'City Center',
-      status: 'Online',
-      sourceType: 'webscan',
-      cameraType: 'OSINT Scanner',
-      lastSeen: '08:18:45 AM',
-      uptime: 98.8,
-      webUrl: 'https://traffic-scan.morth.gov.in/nodes/city-0932',
-      ipAddress: '10.240.44.110',
-      flowStatus: 'SLOW'
-    },
-    {
-      id: 'CAM-1281',
-      name: 'Ring Road Live Feed',
-      location: 'Ring Road',
-      status: 'Online',
-      sourceType: 'video',
-      cameraType: 'PTZ',
-      lastSeen: '08:19:00 AM',
-      uptime: 99.4,
-      detectedPlate: 'TS08 IJ 7890',
-      confidence: 92,
-      vehicleClass: 'Honda Activa',
-      flowStatus: 'NORMAL'
-    },
-    {
-      id: 'ANPR-1102',
-      name: 'West Entrance Snapshot Node',
-      location: 'West Entrance',
-      status: 'Online',
-      sourceType: 'image',
-      cameraType: 'ANPR Cam',
-      lastSeen: '08:18:55 AM',
-      uptime: 99.5,
-      imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&auto=format&fit=crop&q=80',
-      detectedPlate: 'AP11 KL 4321',
-      confidence: 95,
-      vehicleClass: 'Royal Enfield',
-      flowStatus: 'NORMAL'
-    }
-  ];
+  const [feeds, setFeeds] = useState<FeedItem[]>([]);
 
-  const [feeds, setFeeds] = useState<FeedItem[]>(initialFeeds);
+  useEffect(() => {
+    if (cameras && cameras.length > 0) {
+      setFeeds(cameras.map(cam => ({
+        id: cam.id,
+        name: `${cam.id} — ${cam.location}`,
+        location: cam.location,
+        status: cam.status || 'Online',
+        sourceType: 'video',
+        cameraType: cam.type || 'PTZ',
+        lastSeen: cam.lastSeen || 'Just Now',
+        uptime: cam.uptime || 100,
+        thumbnail: cam.thumbnail || ''
+      })));
+    } else {
+      setFeeds([]);
+    }
+  }, [cameras]);
+
   const [sourceFilter, setSourceFilter] = useState<'all' | 'video' | 'image' | 'webscan'>('all');
   const [locationFilter, setLocationFilter] = useState('All Locations');
   const [searchTerm, setSearchTerm] = useState('');
@@ -809,13 +457,13 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
   const [maximizedFeed, setMaximizedFeed] = useState<FeedItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Customize View State
+  // Customize View State (all animations/overlays disabled)
   const [customization, setCustomization] = useState<ViewCustomization>({
-    showAnnotations: true,
+    showAnnotations: false,
     showTimestamp: true,
     showHeatmap: false,
-    showRadar: true,
-    showFlowRate: true
+    showRadar: false,
+    showFlowRate: false
   });
 
   // Modal Form State for Add Feed Source
@@ -1004,7 +652,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
           detectedPlate: plate,
           confidence: conf,
           vehicleClass: vClass,
-          imageUrl: newFeedType === 'image' ? (newFeedUrl || 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=80') : undefined,
+          imageUrl: newFeedType === 'image' ? (newFeedUrl || '') : undefined,
           webUrl: newFeedType === 'webscan' ? (newFeedUrl || `https://surveillance.morth.gov.in/nodes/${newFeedId.toLowerCase()}`) : undefined,
           flowStatus: 'NORMAL'
         };
@@ -1028,7 +676,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         cameraType: newFeedType === 'video' ? 'PTZ' : newFeedType === 'image' ? 'ANPR Cam' : 'OSINT Scanner',
         lastSeen: 'Just Now',
         uptime: 100,
-        imageUrl: newFeedType === 'image' ? (newFeedUrl || 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=80') : undefined,
+        imageUrl: newFeedType === 'image' ? (newFeedUrl || '') : undefined,
         webUrl: newFeedType === 'webscan' ? (newFeedUrl || `https://surveillance.morth.gov.in/nodes/${newFeedId.toLowerCase()}`) : undefined,
         flowStatus: 'NORMAL'
       };
@@ -1400,67 +1048,68 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
             : 'space-y-3.5'
         }`}
       >
-        {filteredFeeds.map((feed) => (
-          <div key={feed.id} className={layout === 'list' ? 'max-w-2xl' : ''}>
-            {/* Render component based on sourceType */}
-            {feed.sourceType === 'video' && (
-              <SimulatedCCTVFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
-            )}
-            {feed.sourceType === 'image' && (
-              <SimulatedImageFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
-            )}
-            {feed.sourceType === 'webscan' && (
-              <SimulatedWebScanFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
-            )}
-
-            {/* Sub-footer details in List mode */}
-            {layout === 'list' && (
-              <div className="bg-white border-x border-b border-slate-200 p-3 rounded-b-xl -mt-2 flex justify-between items-center text-xs shadow-xs">
-                <div>
-                  <span className="font-extrabold text-slate-800">{feed.name} ({feed.id})</span>
-                  <p className="text-[10px] text-slate-500">{feed.location} • Type: {feed.sourceType.toUpperCase()} • Plate: {feed.detectedPlate || 'Scanning...'}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-1 bg-[#0A2540] hover:bg-[#18385A] text-white px-2.5 py-1 rounded-lg text-[9px] font-black cursor-pointer shadow-xs transition">
-                    <Upload size={10} className="text-[#FF9933]" />
-                    <span>Upload Source</span>
-                    <input
-                      type="file"
-                      accept="video/*,image/*"
-                      disabled={feed.isAnalyzing}
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) {
-                          handleCameraUpload(feed, e.target.files[0]);
-                          e.target.value = '';
-                        }
-                      }}
-                      className="sr-only"
-                    />
-                  </label>
-                  <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    UPTIME {feed.uptime}%
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-
-        {filteredFeeds.length === 0 && (
-          <div className="col-span-full py-16 bg-white border border-slate-200 rounded-2xl text-center text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-            <Radio size={32} className="text-slate-300 animate-pulse" />
-            <p className="text-sm text-slate-600">No live feeds match your selected source filter or sector location.</p>
+        {filteredFeeds.length === 0 ? (
+          <div className="col-span-full py-16 bg-white border border-slate-200 rounded-2xl text-center text-slate-500 font-bold flex flex-col items-center justify-center gap-2 shadow-xs">
+            <Radio size={32} className="text-slate-300" />
+            <p className="text-sm text-slate-700 font-extrabold">No Live Feeds Available</p>
+            <p className="text-xs text-slate-500 max-w-md">No registered cameras match your current filters. Add new camera nodes in the Cameras page or reset filters.</p>
             <button
               onClick={() => {
                 setSourceFilter('all');
                 setLocationFilter('All Locations');
                 setSearchTerm('');
               }}
-              className="mt-2 text-xs font-bold text-blue-700 underline"
+              className="mt-2 text-xs font-bold text-blue-700 underline cursor-pointer"
             >
               Reset Filters
             </button>
           </div>
+        ) : (
+          filteredFeeds.map((feed) => (
+            <div key={feed.id} className={layout === 'list' ? 'max-w-2xl' : ''}>
+              {/* Render component based on sourceType */}
+              {feed.sourceType === 'video' && (
+                <SimulatedCCTVFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
+              )}
+              {feed.sourceType === 'image' && (
+                <SimulatedImageFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
+              )}
+              {feed.sourceType === 'webscan' && (
+                <SimulatedWebScanFeed feed={feed} customization={customization} onMaximize={setMaximizedFeed} onUploadSource={handleCameraUpload} />
+              )}
+
+              {/* Sub-footer details in List mode */}
+              {layout === 'list' && (
+                <div className="bg-white border-x border-b border-slate-200 p-3 rounded-b-xl -mt-2 flex justify-between items-center text-xs shadow-xs">
+                  <div>
+                    <span className="font-extrabold text-slate-800">{feed.name} ({feed.id})</span>
+                    <p className="text-[10px] text-slate-500">{feed.location} • Type: {feed.sourceType.toUpperCase()} • Plate: {feed.detectedPlate || 'Scanning...'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1 bg-[#0A2540] hover:bg-[#18385A] text-white px-2.5 py-1 rounded-lg text-[9px] font-black cursor-pointer shadow-xs transition">
+                      <Upload size={10} className="text-[#FF9933]" />
+                      <span>Upload Source</span>
+                      <input
+                        type="file"
+                        accept="video/*,image/*"
+                        disabled={feed.isAnalyzing}
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            handleCameraUpload(feed, e.target.files[0]);
+                            e.target.value = '';
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                    <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      UPTIME {feed.uptime}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
