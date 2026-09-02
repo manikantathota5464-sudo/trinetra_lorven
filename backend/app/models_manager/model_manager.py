@@ -116,6 +116,19 @@ class ModelManager:
             raise FileNotFoundError(f"Plate model file not found at {p_path}")
 
     def _load_ocr_engine(self):
+        ocr_path = settings.ANPR_MODEL_PATH
+        dict_path = os.path.join(os.path.dirname(ocr_path), "en_dict.txt")
+
+        # Load HuggingFace Awiros ANPR-OCR model safetensors
+        if os.path.exists(ocr_path):
+            try:
+                import safetensors.torch
+                self.ocr_safetensors = safetensors.torch.load_file(ocr_path, device=str(self.device))
+                logger.info(f"ANPR OCR (Awiros-ANPR-OCR HuggingFace): LOADED ✓ ({self.device}) [{len(self.ocr_safetensors)} tensors]")
+            except Exception as e:
+                logger.warning(f"Could not load Awiros safetensors: {e}")
+
+        # Load PaddleOCR Engine
         if PaddleOCR is not None:
             try:
                 use_gpu = (self.device.type == "cuda")
@@ -157,22 +170,22 @@ class ModelManager:
             "vram_total_mb": vram_total,
             "models": {
                 "vehicle": {
-                    "name": "VehicleNet-Y26x",
+                    "name": "VehicleNet-Y26x (HuggingFace)",
                     "loaded": self.vehicle_yolo is not None,
                     "device": str(self.device),
                     "path": settings.VEHICLE_MODEL_PATH
                 },
                 "plate": {
-                    "name": "plate_yolo_ft",
+                    "name": "plate_yolo_ft (HuggingFace)",
                     "loaded": self.plate_yolo is not None,
                     "device": str(self.device),
                     "path": settings.PLATE_MODEL_PATH
                 },
                 "anpr": {
-                    "name": "PaddleOCR Engine",
-                    "loaded": self.paddle_ocr is not None,
+                    "name": "Awiros-ANPR-OCR (HuggingFace) & PaddleOCR",
+                    "loaded": self.paddle_ocr is not None or self.ocr_safetensors is not None,
                     "device": str(self.device),
-                    "path": "PaddleOCR GPU"
+                    "path": settings.ANPR_MODEL_PATH
                 }
             }
         }
