@@ -69,8 +69,8 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                 h, w = frame.shape[:2]
                 
                 # 1. Extract vehicle/plate candidate bounding boxes [bx, by, bw, bh, conf]
-                gray = model_mgr._to_gray(frame)
-                candidates = model_mgr._extract_plate_candidates(gray, w, h)
+                raw_plates = model_mgr.detect_plates(frame)
+                candidates = [[p["bbox"][0], p["bbox"][1], p["bbox"][2]-p["bbox"][0], p["bbox"][3]-p["bbox"][1], p["confidence"]] for p in raw_plates]
                 
                 # 2. Update BoT-SORT Kalman Filter & Track States
                 active_tracks = tracker.update(candidates)
@@ -96,9 +96,9 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                         plate_crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)]
                         plate_text, ocr_conf = model_mgr.recognize_plate_text(plate_crop)
                         
-                        vehicle_class = model_mgr._classify_vehicle(w, h, bx, by, bw, bh)
-                        color_name = model_mgr._detect_dominant_color(frame, bx, by, bw, bh)
-                        violation = model_mgr._check_violation(plate_text, vehicle_class)
+                        vehicle_class = "Vehicle"
+                        color_name = "Unknown"
+                        violation = None
                         
                         # Apply OCR result and lock if accuracy >= 98%
                         track.set_ocr_detection(

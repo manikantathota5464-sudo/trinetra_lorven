@@ -6,7 +6,7 @@ echo  React + Tauri Desktop Architecture with Async AI Backend
 echo ============================================================
 
 :: Step 1: Start FastAPI & AI Worker Backend Service
-echo [BACKEND] Starting FastAPI & Long-Lived GPU AI Worker on http://127.0.0.1:8000 ...
+echo [BACKEND] Starting FastAPI ^& Long-Lived GPU AI Worker on http://127.0.0.1:8000 ...
 start "TRINETHRA-AI-Backend" /B py -3.12 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 
 :: Wait for backend health confirmation
