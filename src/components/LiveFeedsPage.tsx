@@ -73,12 +73,61 @@ interface ViewCustomization {
 // -------------------------------------------------------------
 const BoundingBoxOverlay: React.FC<{
   detections?: DetectionItem[];
-  showAnnotations: boolean;
+  showAnnotations?: boolean;
   detectedPlate?: string;
   confidence?: number;
   vehicleClass?: string;
-}> = () => {
-  return null;
+}> = ({ detections }) => {
+  if (!detections || detections.length === 0) return null;
+
+  const colorMap: Record<string, string> = {
+    Car: '#dc2626',       // Vivid Red
+    Bus: '#f97316',       // Vibrant Orange
+    Truck: '#ea580c',     // Dark Amber/Orange
+    'Two-wheeler': '#2563eb', // Royal Blue
+    Vehicle: '#16a34a',   // Emerald Green
+  };
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-15">
+      {detections.map((det, idx) => {
+        if (!det.bbox || det.bbox.length < 4) return null;
+        const [x1, y1, x2, y2] = det.bbox;
+        const vClass = det.vehicleClass || 'Vehicle';
+        const color = colorMap[vClass] || '#dc2626';
+        const confScore = (det.confidence > 1 ? det.confidence / 100 : det.confidence).toFixed(2);
+        const label = det.plateNumber ? `${vClass} ${confScore} | ${det.plateNumber}` : `${vClass} ${confScore}`;
+
+        // Support both pixel coordinates and percentage coordinates
+        const isPixel = x2 > 100 || y2 > 100;
+        const left = isPixel ? `${(x1 / 1280) * 100}%` : `${x1}%`;
+        const top = isPixel ? `${(y1 / 720) * 100}%` : `${y1}%`;
+        const width = isPixel ? `${((x2 - x1) / 1280) * 100}%` : `${x2 - x1}%`;
+        const height = isPixel ? `${((y2 - y1) / 720) * 100}%` : `${y2 - y1}%`;
+
+        return (
+          <div
+            key={det.id || idx}
+            className="absolute border-2 rounded-xs shadow-sm transition-all"
+            style={{
+              left,
+              top,
+              width,
+              height,
+              borderColor: color
+            }}
+          >
+            <div
+              className="absolute -top-5 left-0 px-1.5 py-0.5 text-[8.5px] font-black text-white rounded-t shadow-md flex items-center gap-1 whitespace-nowrap"
+              style={{ backgroundColor: color }}
+            >
+              <span>{label}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 // -------------------------------------------------------------
@@ -95,17 +144,25 @@ const SimulatedCCTVFeed: React.FC<{
 
   return (
     <div className="bg-slate-950 rounded-xl overflow-hidden shadow-md border border-slate-800 relative group">
-      {/* Real Video or Clean Camera Backdrop */}
+      {/* Real Video / Live MJPEG Stream or Clean Camera Backdrop */}
       {feed.videoUrl ? (
         <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden cursor-pointer" onClick={() => onMaximize(feed)}>
-          <video
-            src={feed.videoUrl}
-            autoPlay
-            loop
-            muted={isMuted}
-            playsInline
-            className="w-full h-full object-cover block"
-          />
+          {feed.videoUrl.includes('/api/stream/video') || feed.videoUrl.includes('mjpeg') ? (
+            <img
+              src={feed.videoUrl}
+              alt={feed.name}
+              className="w-full h-full object-cover block"
+            />
+          ) : (
+            <video
+              src={feed.videoUrl}
+              autoPlay
+              loop
+              muted={isMuted}
+              playsInline
+              className="w-full h-full object-cover block"
+            />
+          )}
         </div>
       ) : feed.thumbnail || feed.imageUrl ? (
         <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden cursor-pointer" onClick={() => onMaximize(feed)}>
@@ -427,23 +484,79 @@ interface LiveFeedsPageProps {
 }
 
 export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
-  const [feeds, setFeeds] = useState<FeedItem[]>([]);
+  const DEFAULT_FEEDS: FeedItem[] = [
+    {
+      id: 'CAM-101',
+      name: 'CAM-101 — Main St & 5th Ave',
+      location: 'Main St & 5th Ave',
+      status: 'Online',
+      sourceType: 'video',
+      cameraType: 'PTZ',
+      lastSeen: 'Just Now',
+      uptime: 99.9,
+      flowStatus: 'NORMAL'
+    },
+    {
+      id: 'CAM-102',
+      name: 'CAM-102 — I-9 Overpass',
+      location: 'I-9 Overpass',
+      status: 'Online',
+      sourceType: 'video',
+      cameraType: 'Fixed',
+      lastSeen: 'Just Now',
+      uptime: 99.8,
+      flowStatus: 'NORMAL'
+    },
+    {
+      id: 'CAM-103',
+      name: 'CAM-103 — Harbor Rd Exit',
+      location: 'Harbor Rd Exit',
+      status: 'Online',
+      sourceType: 'image',
+      cameraType: 'ANPR Cam',
+      lastSeen: 'Just Now',
+      uptime: 100,
+      flowStatus: 'NORMAL'
+    }
+  ];
+
+  const [feeds, setFeeds] = useState<FeedItem[]>(DEFAULT_FEEDS);
 
   useEffect(() => {
     if (cameras && cameras.length > 0) {
-      setFeeds(cameras.map(cam => ({
-        id: cam.id,
-        name: `${cam.id} — ${cam.location}`,
-        location: cam.location,
-        status: cam.status || 'Online',
-        sourceType: 'video',
-        cameraType: cam.type || 'PTZ',
-        lastSeen: cam.lastSeen || 'Just Now',
-        uptime: cam.uptime || 100,
-        thumbnail: cam.thumbnail || ''
-      })));
-    } else {
-      setFeeds([]);
+      setFeeds(prev => {
+        const existingMap = new Map(prev.map(f => [f.id, f]));
+        const updatedList: FeedItem[] = cameras.map(cam => {
+          const existing = existingMap.get(cam.id);
+          if (existing) {
+            return {
+              ...existing,
+              status: cam.status || existing.status,
+              location: cam.location || existing.location,
+            };
+          }
+          return {
+            id: cam.id,
+            name: `${cam.id} — ${cam.location}`,
+            location: cam.location,
+            status: cam.status || 'Online',
+            sourceType: 'video',
+            cameraType: cam.type || 'PTZ',
+            lastSeen: cam.lastSeen || 'Just Now',
+            uptime: cam.uptime || 100,
+            thumbnail: cam.thumbnail || ''
+          };
+        });
+
+        // Retain custom uploaded feeds not present in backend cameras list
+        prev.forEach(f => {
+          if (!updatedList.some(u => u.id === f.id)) {
+            updatedList.push(f);
+          }
+        });
+
+        return updatedList;
+      });
     }
   }, [cameras]);
 
@@ -580,6 +693,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
         });
 
         const mediaUrl = URL.createObjectURL(file);
+        const imgDisplay = result.annotated_image || mediaUrl;
         const topDet = result.detections?.[0];
 
         setFeeds(prev => prev.map(f => {
@@ -587,8 +701,8 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
             return {
               ...f,
               sourceType: 'image',
-              imageUrl: mediaUrl,
-              thumbnail: mediaUrl,
+              imageUrl: imgDisplay,
+              thumbnail: imgDisplay,
               isAnalyzing: false,
               detections: result.detections && result.detections.length > 0 ? result.detections : undefined,
               detectedPlate: topDet?.plateNumber || f.detectedPlate || '',
@@ -663,6 +777,7 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
           const plate = topDetection?.plateNumber || '';
           const vClass = topDetection?.vehicleClass || 'Sedan';
           const conf = topDetection ? Math.round(topDetection.confidence * 100) : 98;
+          const uploadedImgDisplay = result.annotated_image || URL.createObjectURL(selectedFile);
 
           const newFeed: FeedItem = {
             id: newFeedId.toUpperCase(),
@@ -673,8 +788,8 @@ export const LiveFeedsPage: React.FC<LiveFeedsPageProps> = ({ cameras }) => {
             cameraType: 'ANPR Cam',
             lastSeen: 'Just Now',
             uptime: 100,
-            imageUrl: URL.createObjectURL(selectedFile),
-            thumbnail: URL.createObjectURL(selectedFile),
+            imageUrl: uploadedImgDisplay,
+            thumbnail: uploadedImgDisplay,
             detectedPlate: plate,
             confidence: conf,
             vehicleClass: vClass,

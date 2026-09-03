@@ -48,6 +48,7 @@ export interface JobResultResponse {
   fps: number;
   execution_time_seconds: number;
   detections: DetectionItem[];
+  annotated_image?: string;
   summary: {
     platesDetected?: number;
     uniquePlatesCount?: number;

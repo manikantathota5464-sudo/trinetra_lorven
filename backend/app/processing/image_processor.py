@@ -22,15 +22,18 @@ def process_image_file(file_path: str, job_id: str, job_manager) -> Dict[str, An
     model_mgr = get_model_manager()
     detections = model_mgr.detect_vehicles_and_plates(img)
     
-    job_manager.update_progress(job_id, 85, "Aggregating OCR results and violations")
+    job_manager.update_progress(job_id, 85, "Aggregating OCR results and annotations")
+    annotated_img = model_mgr.annotate_image(img, detections)
+    annotated_base64 = model_mgr.frame_to_base64(annotated_img)
     
-    # Release raw image buffer
-    del img
+    # Release raw image buffers
+    del img, annotated_img
     
     exec_time = time.time() - start_time
     
     return {
         "detections": detections,
+        "annotated_image": annotated_base64,
         "total_frames": 1,
         "processed_frames": 1,
         "fps": 1.0 / max(0.001, exec_time),
