@@ -14,6 +14,8 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from typing import List, Tuple, Dict, Any, Optional
 
+import threading
+
 class TrackState:
     New = 0
     Tracked = 1
@@ -98,6 +100,7 @@ class BoTTrack:
         self.track_id = BoTTrack._count
         self.is_activated = False
         self.state = TrackState.New
+        self._lock = threading.Lock()
         
         self.tlwh = np.asarray(tlwh, dtype=float)
         self.score = float(score)
@@ -119,6 +122,7 @@ class BoTTrack:
         # 98% Accuracy Fast-Skip Rule
         self.plate_locked: bool = False
         self.skipped_ocr_frames: int = 0
+        self.ocr_pending: bool = False
 
     @staticmethod
     def reset_counter():
@@ -132,6 +136,15 @@ class BoTTrack:
         return ret
 
     @staticmethod
+    def xyah_to_tlwh(xyah: np.ndarray) -> np.ndarray:
+        ret = np.asarray(xyah).copy()
+        w = ret[2] * ret[3]
+        h = ret[3]
+        x = ret[0] - w / 2.0
+        y = ret[1] - h / 2.0
+        return np.array([x, y, w, h], dtype=float)
+
+    @staticmethod
     def tlwh_to_tlbr(tlwh: np.ndarray) -> np.ndarray:
         ret = np.asarray(tlwh).copy()
         ret[2:] += ret[:2]
@@ -143,31 +156,43 @@ class BoTTrack:
 
     def should_skip_ocr(self, threshold: float = 0.98) -> bool:
         """Returns True if this vehicle already has >= 98% accuracy, skipping heavy OCR in current frame."""
-        return self.plate_locked or (self.plate_confidence >= threshold and bool(self.plate_number))
+        with self._lock:
+            return self.plate_locked or (self.plate_confidence >= threshold and bool(self.plate_number)) or self.ocr_pending
+
+    def set_ocr_pending(self, pending: bool = True):
+        with self._lock:
+            self.ocr_pending = pending
 
     def set_ocr_detection(self, plate: str, confidence: float, vehicle_class: str, color: str, violation: Optional[str] = None):
-        """Update vehicle detection record with highest accuracy selection and 98% accuracy locking."""
-        # Retain highest confidence valid plate text for this unique vehicle track
-        if plate and (confidence > self.plate_confidence or not self.plate_number):
-            self.plate_number = plate
-            self.plate_confidence = float(confidence)
-            self.vehicle_class = vehicle_class
-            self.color = color
-            self.violation = violation
+        """Update vehicle detection record thread-safely with highest accuracy selection."""
+        with self._lock:
+            self.ocr_pending = False
+            if plate and (confidence > self.plate_confidence or not self.plate_number):
+                self.plate_number = plate
+                self.plate_confidence = float(confidence)
+                if vehicle_class:
+                    self.vehicle_class = vehicle_class
+                if color:
+                    self.color = color
+                if violation:
+                    self.violation = violation
 
-        # Lock plate if >= 98% accuracy (0.98)
-        if self.plate_confidence >= 0.98 and bool(self.plate_number):
-            self.plate_locked = True
+            # Lock plate if >= 98% accuracy (0.98)
+            if self.plate_confidence >= 0.98 and bool(self.plate_number):
+                self.plate_locked = True
 
     def mark_ocr_skipped(self):
         """Record that OCR was skipped in current frame due to high-accuracy cache."""
-        self.skipped_ocr_frames += 1
+        with self._lock:
+            self.skipped_ocr_frames += 1
 
     def predict(self):
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
             mean_state[7] = 0
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
+        # Update bounding box state based on Kalman prediction
+        self.tlwh = self.xyah_to_tlwh(self.mean[:4])
 
     def update(self, new_track: 'BoTTrack', frame_id: int):
         self.frame_id = frame_id

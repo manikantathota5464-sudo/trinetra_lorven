@@ -14,6 +14,18 @@ from ..config import settings
 
 logger = logging.getLogger("TRINETRA.VideoProcessor")
 
+import os
+import time
+import cv2
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Any, List
+from ..models_manager.model_manager import get_model_manager
+from ..tracking.botsort import BoTSORTTracker
+from ..config import settings
+
+logger = logging.getLogger("TRINETRA.VideoProcessor")
+
 def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: int = None) -> Dict[str, Any]:
     start_time = time.time()
     sample_rate = sample_rate or settings.FRAME_SAMPLE_RATE
@@ -34,10 +46,11 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
     
     model_mgr = get_model_manager()
     tracker = BoTSORTTracker(track_thresh=0.30, match_thresh=0.7)
+    ocr_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="Video-OCR-Worker")
     
     # Store finalized unique vehicle detections by track_id
     final_tracked_vehicles: Dict[int, Dict[str, Any]] = {}
-    frame_detections_history: List[Dict[str, Any]] = []
+    pending_futures = []
     
     frame_idx = 0
     sampled_count = 0
@@ -80,6 +93,10 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                 # 2. Update BoT-SORT Kalman Filter & Track States
                 active_tracks = tracker.update(candidates)
                 
+                # Immediate initial vehicle bounding box update on frame 0
+                if frame_idx == 0 and active_tracks:
+                    job_manager.update_progress(job_id, 10, f"Detected initial {len(active_tracks)} vehicle bounding boxes via BoT-SORT")
+                
                 # Video timestamp (MM:SS)
                 current_sec = frame_idx / max(1.0, video_fps)
                 mins, secs = divmod(int(current_sec), 60)
@@ -89,20 +106,14 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                 for track in active_tracks:
                     # Check 98% accuracy fast-skip condition
                     if track.should_skip_ocr(threshold=0.98):
-                        # BOTSORT FAST-SKIP: Vehicle already processed with >= 98% accuracy
                         track.mark_ocr_skipped()
                         total_ocr_skipped_frames += 1
                     else:
-                        # Compute OCR on plate crop
                         total_ocr_computed_frames += 1
                         bx, by, x2, y2 = [int(v) for v in track.tlbr]
                         bw, bh = max(10, x2 - bx), max(10, y2 - by)
+                        plate_crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)].copy()
                         
-                        # Find matching plate or vehicle crop
-                        plate_crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)]
-                        plate_text, ocr_conf = model_mgr.recognize_plate_text(plate_crop)
-                        
-                        # Match vehicle class if available
                         matched_class = "Vehicle"
                         for v in raw_vehicles:
                             vx1, vy1, vx2, vy2 = v["bbox"]
@@ -110,16 +121,27 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
                                 matched_class = v["class"]
                                 break
 
-                        # Update BoT-SORT track state
-                        track.set_ocr_detection(
-                            plate=plate_text,
-                            confidence=ocr_conf,
-                            vehicle_class=matched_class,
-                            color="Unknown",
-                            violation=None
-                        )
+                        track.set_ocr_pending(True)
+
+                        # Submit background OCR recognition task
+                        def async_ocr(t=track, crop=plate_crop, m_cls=matched_class):
+                            try:
+                                p_text, o_conf = model_mgr.recognize_plate_text(crop)
+                                t.set_ocr_detection(
+                                    plate=p_text,
+                                    confidence=o_conf,
+                                    vehicle_class=m_cls,
+                                    color="Unknown",
+                                    violation=None
+                                )
+                            except Exception as e:
+                                logger.debug(f"Background video OCR error: {e}")
+                                t.set_ocr_pending(False)
+
+                        fut = ocr_executor.submit(async_ocr)
+                        pending_futures.append(fut)
                     
-                    # Update finalized vehicle record for this unique track_id
+                    # Update tracked vehicle record
                     det_record = track.to_dict(video_timestamp=time_str)
                     final_tracked_vehicles[track.track_id] = det_record
                 
@@ -143,10 +165,16 @@ def process_video_file(file_path: str, job_id: str, job_manager, sample_rate: in
             
     finally:
         cap.release()
+        # Wait for any remaining background OCR futures to complete
+        ocr_executor.shutdown(wait=True)
         
     exec_time = time.time() - start_time
     calc_fps = sampled_count / max(0.001, exec_time)
     
+    # Re-sync final track records after all background OCR tasks completed
+    for track in tracker.tracked_tracks:
+        final_tracked_vehicles[track.track_id] = track.to_dict()
+
     job_manager.update_progress(job_id, 98, "Finalizing BoT-SORT trajectory reports and database records")
     
     detections_list = list(final_tracked_vehicles.values())
