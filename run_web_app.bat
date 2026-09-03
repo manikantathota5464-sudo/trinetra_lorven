@@ -12,7 +12,7 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5173 ^| findstr LISTENING') 
 
 :: Step 2: Start FastAPI GPU AI Backend
 echo [BACKEND] Starting FastAPI GPU AI Server on http://127.0.0.1:8000 ...
-start "TRINETRA-AI-Backend" /B python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+start "TRINETRA-AI-Backend" /B py -3.12 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 
 :: Wait for AI Engine startup & model preloading
 python scripts\wait_for_backend.py

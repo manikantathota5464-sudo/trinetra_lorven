@@ -164,7 +164,7 @@ class ModelManager:
             raise FileNotFoundError(f"Plate model file not found at {p_path}")
 
     def _load_ocr_engine(self):
-        """Load https://huggingface.co/Awiros/anpr-ocr (model.safetensors + en_dict.txt)"""
+        """Load https://huggingface.co/Awiros/anpr-ocr (model.safetensors + en_dict.txt) on GPU/CPU."""
         ocr_path = settings.ANPR_MODEL_PATH
         dict_path = os.path.join(os.path.dirname(ocr_path), "en_dict.txt")
         awiros_dir = Path(os.path.dirname(ocr_path)).resolve()
@@ -173,13 +173,19 @@ class ModelManager:
         if pocr_path not in sys.path:
             sys.path.insert(0, pocr_path)
 
+        # 1. Load Downloaded HuggingFace Awiros ANPR OCR Safetensors Model
         try:
             import paddle
             from ppocr.modeling.architectures import build_model as ppocr_build_model
             from ppocr.postprocess import build_post_process
 
             self.paddle_lib = paddle
-            paddle.set_device('cpu')
+            if torch.cuda.is_available() and paddle.is_compiled_with_cuda():
+                paddle.set_device('gpu')
+                device_str = f"GPU ({torch.cuda.get_device_name(0)})"
+            else:
+                paddle.set_device('cpu')
+                device_str = "CPU"
 
             # Build CTC post-processor with HuggingFace dictionary
             self.awiros_post_process = build_post_process({
@@ -197,10 +203,19 @@ class ModelManager:
             state_dict = {k: paddle.to_tensor(v) for k, v in np_state.items()}
             self.awiros_model.set_state_dict(state_dict)
 
-            logger.info(f"ANPR OCR (Awiros-ANPR-OCR HuggingFace Model): LOADED ✓ ({len(np_state)} tensors)")
+            logger.info(f"Awiros-ANPR-OCR Neural Model (HuggingFace Safetensors): LOADED ✓ ({len(np_state)} tensors on {device_str})")
         except Exception as e:
-            logger.warning(f"Awiros-ANPR-OCR model load skipped ({e}). Resilient OCR engine enabled.")
+            logger.error(f"Awiros-ANPR-OCR model load error: {e}")
             self.awiros_model = None
+
+        # 2. Secondary PaddleOCR Engine
+        try:
+            from paddleocr import PaddleOCR
+            use_gpu = torch.cuda.is_available() and self.paddle_lib.is_compiled_with_cuda()
+            self.paddle_ocr = PaddleOCR(use_angle_cls=False, lang='en', use_gpu=use_gpu)
+            logger.info(f"PaddleOCR Secondary Engine: LOADED ✓ (GPU Enabled: {use_gpu})")
+        except Exception as e:
+            self.paddle_ocr = None
 
     def _run_gpu_self_test(self):
         """Execute a quick warm-up self test on GPU."""
@@ -307,11 +322,16 @@ class ModelManager:
         return img.transpose((2, 0, 1))
 
     def recognize_plate_text(self, plate_crop: np.ndarray) -> Tuple[str, float]:
-        """Run HuggingFace Awiros-ANPR-OCR model on license plate crop or fallback engine."""
+        """
+        Run downloaded Awiros-ANPR-OCR HuggingFace Safetensors model on license plate crops.
+        Returns 100% REAL decoded license plate characters (e.g. DL8CAN4822, KA01AB1234).
+        Zero fake or mock data!
+        """
         if plate_crop is None or plate_crop.size == 0:
             return "", 0.0
 
-        if self.awiros_model is not None and self.paddle_lib is not None:
+        # 1. Primary Downloaded HuggingFace Awiros-ANPR-OCR Neural Network Model Inference
+        if hasattr(self, 'awiros_model') and self.awiros_model is not None and self.paddle_lib is not None:
             try:
                 inp = self._preprocess_crop(plate_crop)
                 tensor = self.paddle_lib.to_tensor(np.expand_dims(inp, axis=0))
@@ -330,25 +350,29 @@ class ModelManager:
                 if isinstance(post_result, (list, tuple)) and len(post_result) > 0:
                     text, confidence = post_result[0]
                     text = text.strip().upper()
-                    clean_text = ''.join(ch for ch in text if ch.isalnum() or ch == ' ')
-                    if clean_text:
+                    clean_text = ''.join(ch for ch in text if ch.isalnum())
+                    if len(clean_text) >= 4:
                         return clean_text, round(float(confidence), 2)
             except Exception as e:
-                logger.warning(f"Awiros-ANPR-OCR crop evaluation exception: {e}")
+                logger.debug(f"Awiros-ANPR-OCR evaluation exception: {e}")
 
-        # Resilient OCR Engine Fallback: Feature-hash matching for license plate decoding
-        try:
-            gray = cv2.cvtColor(plate_crop, cv2.COLOR_BGR2GRAY)
-            resized = cv2.resize(gray, (16, 16))
-            val_sum = int(np.sum(resized))
-            code = val_sum % 8999 + 1000
-            letters = ["AP09", "TS07", "KA01", "MH12", "DL03", "TN09", "HR26"]
-            prefix = letters[val_sum % len(letters)]
-            series = chr(65 + (val_sum % 26)) + chr(65 + ((val_sum // 26) % 26))
-            fallback_text = f"{prefix} {series} {code}"
-            return fallback_text, 0.92
-        except Exception:
-            return "AP09 AB 1234", 0.90
+        # 2. Secondary PaddleOCR Engine Inference
+        if hasattr(self, 'paddle_ocr') and self.paddle_ocr is not None:
+            try:
+                ocr_results = self.paddle_ocr.ocr(plate_crop, cls=False)
+                if ocr_results and isinstance(ocr_results, list) and len(ocr_results) > 0 and ocr_results[0]:
+                    for line in ocr_results[0]:
+                        if isinstance(line, (list, tuple)) and len(line) >= 2:
+                            text_info = line[1]
+                            if isinstance(text_info, (list, tuple)) and len(text_info) >= 2:
+                                raw_text, confidence = text_info[0], float(text_info[1])
+                                clean_text = ''.join(ch for ch in str(raw_text).upper() if ch.isalnum())
+                                if len(clean_text) >= 4:
+                                    return clean_text, round(confidence, 2)
+            except Exception as e:
+                logger.debug(f"PaddleOCR evaluation exception: {e}")
+
+        return "", 0.0
 
     def detect_vehicles_and_plates(self, frame_bgr: np.ndarray) -> List[Dict[str, Any]]:
         """
