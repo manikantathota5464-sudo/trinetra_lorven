@@ -120,7 +120,7 @@ class AIWorker:
                 det_copy["filename"] = job.get("filename", "")
                 det_copy["sourceType"] = "video" if job_type == JobType.VIDEO else "image"
                 if not det_copy.get("plateNumber"):
-                    det_copy["plateNumber"] = "UNREADED / NO PLATE"
+                    det_copy["plateNumber"] = "UNREADABLE"
                 detections.append(det_copy)
             
             if detections:

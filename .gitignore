@@ -43,7 +43,15 @@ models/**/*.pt
 models/**/weights/*.pt
 models/**/models/*.pt
 models/**/*.safetensors
+models/**/*.onnx
+models/**/*.pdiparams*
+models/**/inference.json
 models/**/.cache/
 models/**/.git/
 models/**/PaddleOCR/
+
+# Debug directories
+debug_crops/
+debug_crops_live/
+
 

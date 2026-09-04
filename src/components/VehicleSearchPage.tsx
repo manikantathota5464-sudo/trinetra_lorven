@@ -55,13 +55,13 @@ export const VehicleSearchPage: React.FC = () => {
         const mapped: VehicleRecord[] = stored.map((d: any) => ({
           plate: d.plateNumber,
           conf: `${Math.round((d.confidence > 1 ? d.confidence : d.confidence * 100))}%`,
-          brand: d.vehicleClass || 'Sedan',
-          color: d.color || 'White',
-          type: d.vehicleClass ? d.vehicleClass.split(' ')[0] : 'Sedan',
-          loc: d.location || (d.filename ? `Uploaded Media (${d.filename})` : 'AI Analysis Node'),
-          cam: d.camera_id || 'AI-SURVEILLANCE',
-          speed: d.speed || '52 km/h',
-          lane: d.lane || 'Lane 1',
+          brand: d.vehicleClass || 'Unknown',
+          color: d.color || 'N/A',
+          type: d.vehicleClass ? d.vehicleClass.split(' ')[0] : 'Vehicle',
+          loc: d.location || (d.filename ? `Uploaded Media (${d.filename})` : 'N/A'),
+          cam: d.camera_id || 'N/A',
+          speed: d.speed ? (typeof d.speed === 'number' ? `${d.speed} km/h` : d.speed) : 'N/A',
+          lane: d.lane || 'N/A',
           time: d.timestamp || d.timestamp_iso || new Date().toLocaleTimeString(),
           status: d.violation ? (d.violation.includes('Speed') ? 'Speeding' : 'Violation') : 'Clean',
           statusColor: d.violation ? 'amber' : 'emerald'
@@ -192,10 +192,15 @@ export const VehicleSearchPage: React.FC = () => {
             <span>Refresh DB</span>
           </button>
           <button
-            onClick={() => { setPlateQuery(''); setBrandFilter('All Brands'); setTypeFilter('All Types'); setColorFilter('All Colors'); setCameraFilter('All Cameras'); }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 text-white border border-white/20 rounded-lg hover:bg-white/20 text-[9px] font-bold cursor-pointer"
+            onClick={async () => {
+              setPlateQuery(''); setBrandFilter('All Brands'); setTypeFilter('All Types'); setColorFilter('All Colors'); setCameraFilter('All Cameras');
+              await jobsApi.clearDetections();
+              await loadFromDatabase();
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white border border-rose-500 rounded-lg text-[9px] font-bold cursor-pointer transition shadow-xs"
+            title="Clear all stored detections from database and reset filters"
           >
-            <RefreshCw size={11} /> Reset Filter
+            <RefreshCw size={11} /> Reset / Clear DB
           </button>
           <button
             onClick={() => alert('Exporting results...')}

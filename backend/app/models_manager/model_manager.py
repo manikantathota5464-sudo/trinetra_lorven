@@ -164,58 +164,14 @@ class ModelManager:
             raise FileNotFoundError(f"Plate model file not found at {p_path}")
 
     def _load_ocr_engine(self):
-        """Load https://huggingface.co/Awiros/anpr-ocr (model.safetensors + en_dict.txt) on GPU/CPU."""
-        ocr_path = settings.ANPR_MODEL_PATH
-        dict_path = os.path.join(os.path.dirname(ocr_path), "en_dict.txt")
-        awiros_dir = Path(os.path.dirname(ocr_path)).resolve()
-
-        pocr_path = str(awiros_dir / "PaddleOCR")
-        if pocr_path not in sys.path:
-            sys.path.insert(0, pocr_path)
-
-        # 1. Load Downloaded HuggingFace Awiros ANPR OCR Safetensors Model
+        """Load Awiros ANPR OCR service."""
         try:
-            import paddle
-            from ppocr.modeling.architectures import build_model as ppocr_build_model
-            from ppocr.postprocess import build_post_process
-
-            self.paddle_lib = paddle
-            if torch.cuda.is_available() and paddle.is_compiled_with_cuda():
-                paddle.set_device('gpu')
-                device_str = f"GPU ({torch.cuda.get_device_name(0)})"
-            else:
-                paddle.set_device('cpu')
-                device_str = "CPU"
-
-            # Build CTC post-processor with HuggingFace dictionary
-            self.awiros_post_process = build_post_process({
-                "name": "CTCLabelDecode",
-                "character_dict_path": dict_path,
-                "use_space_char": True,
-            })
-
-            # Build model architecture & load safetensors weights
-            config = copy.deepcopy(AWIROS_MODEL_CONFIG)
-            self.awiros_model = ppocr_build_model(config["Architecture"])
-            self.awiros_model.eval()
-
-            np_state = safetensors.numpy.load_file(ocr_path)
-            state_dict = {k: paddle.to_tensor(v) for k, v in np_state.items()}
-            self.awiros_model.set_state_dict(state_dict)
-
-            logger.info(f"Awiros-ANPR-OCR Neural Model (HuggingFace Safetensors): LOADED ✓ ({len(np_state)} tensors on {device_str})")
+            from ..services.ocr_service import get_ocr_service
+            self.ocr_service = get_ocr_service()
+            logger.info("Awiros-ANPR-OCR Service:                   LOADED ✓")
         except Exception as e:
-            logger.error(f"Awiros-ANPR-OCR model load error: {e}")
-            self.awiros_model = None
-
-        # 2. Secondary PaddleOCR Engine
-        try:
-            from paddleocr import PaddleOCR
-            use_gpu = torch.cuda.is_available() and self.paddle_lib.is_compiled_with_cuda()
-            self.paddle_ocr = PaddleOCR(use_angle_cls=False, lang='en', use_gpu=use_gpu)
-            logger.info(f"PaddleOCR Secondary Engine: LOADED ✓ (GPU Enabled: {use_gpu})")
-        except Exception as e:
-            self.paddle_ocr = None
+            logger.error(f"Failed to initialize OCRService: {e}")
+            self.ocr_service = None
 
     def _run_gpu_self_test(self):
         """Execute a quick warm-up self test on GPU."""
@@ -323,56 +279,49 @@ class ModelManager:
 
     def recognize_plate_text(self, plate_crop: np.ndarray) -> Tuple[str, float]:
         """
-        Run downloaded Awiros-ANPR-OCR HuggingFace Safetensors model on license plate crops.
-        Returns 100% REAL decoded license plate characters (e.g. DL8CAN4822, KA01AB1234).
-        Zero fake or mock data!
+        Run Awiros-ANPR-OCR model on license plate crops.
+        Returns decoded license plate characters and confidence.
         """
         if plate_crop is None or plate_crop.size == 0:
             return "", 0.0
 
-        # 1. Primary Downloaded HuggingFace Awiros-ANPR-OCR Neural Network Model Inference
-        if hasattr(self, 'awiros_model') and self.awiros_model is not None and self.paddle_lib is not None:
+        # Sub-crop tightening ONLY if a full loose vehicle crop is passed (width > 120 and height > 80)
+        h_c, w_c = plate_crop.shape[:2]
+        if w_c > 120 and h_c > 80:
             try:
-                inp = self._preprocess_crop(plate_crop)
-                tensor = self.paddle_lib.to_tensor(np.expand_dims(inp, axis=0))
-
-                with self.paddle_lib.no_grad():
-                    preds = self.awiros_model(tensor)
-
-                if isinstance(preds, dict):
-                    pred_tensor = preds.get("ctc", next(iter(preds.values())))
-                elif isinstance(preds, (list, tuple)):
-                    pred_tensor = preds[0]
-                else:
-                    pred_tensor = preds
-
-                post_result = self.awiros_post_process(pred_tensor.numpy())
-                if isinstance(post_result, (list, tuple)) and len(post_result) > 0:
-                    text, confidence = post_result[0]
-                    text = text.strip().upper()
-                    clean_text = ''.join(ch for ch in text if ch.isalnum())
-                    if len(clean_text) >= 4:
-                        return clean_text, round(float(confidence), 2)
+                inner_plates = self.detect_plates(plate_crop)
+                if inner_plates and len(inner_plates) > 0:
+                    ipx1, ipy1, ipx2, ipy2 = inner_plates[0]["bbox"]
+                    plate_crop = plate_crop[max(0, ipy1):min(h_c, ipy2), max(0, ipx1):min(w_c, ipx2)]
             except Exception as e:
-                logger.debug(f"Awiros-ANPR-OCR evaluation exception: {e}")
+                logger.debug(f"Plate sub-crop extraction exception: {e}")
 
-        # 2. Secondary PaddleOCR Engine Inference
-        if hasattr(self, 'paddle_ocr') and self.paddle_ocr is not None:
-            try:
-                ocr_results = self.paddle_ocr.ocr(plate_crop, cls=False)
-                if ocr_results and isinstance(ocr_results, list) and len(ocr_results) > 0 and ocr_results[0]:
-                    for line in ocr_results[0]:
-                        if isinstance(line, (list, tuple)) and len(line) >= 2:
-                            text_info = line[1]
-                            if isinstance(text_info, (list, tuple)) and len(text_info) >= 2:
-                                raw_text, confidence = text_info[0], float(text_info[1])
-                                clean_text = ''.join(ch for ch in str(raw_text).upper() if ch.isalnum())
-                                if len(clean_text) >= 4:
-                                    return clean_text, round(confidence, 2)
-            except Exception as e:
-                logger.debug(f"PaddleOCR evaluation exception: {e}")
-
+        if hasattr(self, 'ocr_service') and self.ocr_service is not None:
+            return self.ocr_service.recognize(plate_crop)
         return "", 0.0
+
+    def recognize_plate_text_batch(self, crops: List[np.ndarray]) -> List[Tuple[str, float]]:
+        """Run batched Awiros-ANPR-OCR model inference across multiple plate crops."""
+        if not crops:
+            return []
+
+        processed_crops = []
+        for plate_crop in crops:
+            if plate_crop is not None and plate_crop.size > 0:
+                h_c, w_c = plate_crop.shape[:2]
+                if w_c > 120 and h_c > 80:
+                    try:
+                        inner_plates = self.detect_plates(plate_crop)
+                        if inner_plates and len(inner_plates) > 0:
+                            ipx1, ipy1, ipx2, ipy2 = inner_plates[0]["bbox"]
+                            plate_crop = plate_crop[max(0, ipy1):min(h_c, ipy2), max(0, ipx1):min(w_c, ipx2)]
+                    except Exception as e:
+                        logger.debug(f"Plate sub-crop extraction exception in batch: {e}")
+            processed_crops.append(plate_crop)
+
+        if hasattr(self, 'ocr_service') and self.ocr_service is not None:
+            return self.ocr_service.recognize_batch(processed_crops)
+        return [("", 0.0)] * len(crops)
 
     def detect_vehicles_and_plates(self, frame_bgr: np.ndarray) -> List[Dict[str, Any]]:
         """
@@ -409,9 +358,9 @@ class ModelManager:
 
             results.append({
                 "id": f"DET-{int(time.time()*1000)%100000}-{p_idx+1}",
-                "plateNumber": plate_text,  # Only actual decoded text from Awiros-ANPR-OCR
-                "confidence": plate["confidence"],
-                "ocrConfidence": ocr_conf,
+                "plateNumber": plate_text if plate_text else "UNREADABLE",
+                "confidence": round(ocr_conf, 2),
+                "ocrConfidence": round(ocr_conf, 2),
                 "vehicleClass": vehicle_class,
                 "vehicleConfidence": vehicle_conf,
                 "bbox": [px1, py1, px2, py2],

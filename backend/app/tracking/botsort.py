@@ -211,12 +211,17 @@ class BoTTrack:
     def to_dict(self, video_timestamp: str = "00:00") -> Dict[str, Any]:
         """Format tracked vehicle for frontend overlay and MongoDB storage."""
         x1, y1, x2, y2 = self.tlbr
+        p_text = self.plate_number or ""
+        # Use actual OCR recognition confidence score
+        ocr_conf = round(self.plate_confidence, 2) if self.plate_confidence > 0 else 0.0
         return {
             "id": f"TRK-{self.track_id:04d}",
             "track_id": self.track_id,
-            "plateNumber": self.plate_number or "",
-            "confidence": round(self.plate_confidence, 2) if self.plate_confidence > 0 else round(self.score, 2),
+            "plateNumber": p_text if p_text else "UNREADABLE",
+            "confidence": ocr_conf,
+            "ocrConfidence": ocr_conf,
             "vehicleClass": self.vehicle_class or "Vehicle",
+            "vehicleConfidence": round(self.score, 2),
             "color": self.color or "Unknown",
             "bbox": [int(x1), int(y1), int(x2), int(y2)],
             "violation": self.violation,

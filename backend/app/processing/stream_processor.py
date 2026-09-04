@@ -133,20 +133,35 @@ class StreamProcessor:
                     raw_vehicles = self.model_mgr.detect_vehicles(frame)
                     raw_plates = self.model_mgr.detect_plates(frame)
 
-                    # 2. Bounding box candidates [x, y, w, h, conf] for BoT-SORT
+                    # 2. Bounding box candidates [x, y, w, h, conf] for BoT-SORT (vehicles only)
                     candidates = [[v["bbox"][0], v["bbox"][1], v["bbox"][2]-v["bbox"][0], v["bbox"][3]-v["bbox"][1], v["confidence"]] for v in raw_vehicles]
-                    if not candidates:
-                        candidates = [[p["bbox"][0], p["bbox"][1], p["bbox"][2]-p["bbox"][0], p["bbox"][3]-p["bbox"][1], p["confidence"]] for p in raw_plates]
 
                     # 3. BoT-SORT Tracker Update
                     active_tracks = tracker.update(candidates)
 
-                    # 4. Schedule Background OCR for active vehicle tracks requiring plate reading
+                    # 4. Schedule Background OCR using matched tight plate bounding boxes
                     for track in active_tracks:
                         if not track.should_skip_ocr(threshold=0.98):
                             bx, by, x2, y2 = [int(v) for v in track.tlbr]
-                            bw, bh = max(10, x2 - bx), max(10, y2 - by)
-                            crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)].copy()
+                            
+                            # Match exact plate box detected on frame
+                            plate_crop = None
+                            best_pconf = 0.0
+                            for p in raw_plates:
+                                px1, py1, px2, py2 = p["bbox"]
+                                pcx, pcy = (px1 + px2) // 2, (py1 + py2) // 2
+                                if bx <= pcx <= x2 and by <= pcy <= y2:
+                                    if p["confidence"] > best_pconf:
+                                        best_pconf = p["confidence"]
+                                        plate_crop = frame[max(0, py1):min(h, py2), max(0, px1):min(w, px2)].copy()
+
+                            if plate_crop is None or plate_crop.size == 0:
+                                bw, bh = max(10, x2 - bx), max(10, y2 - by)
+                                v_crop = frame[max(0, by):min(h, by+bh), max(0, bx):min(w, bx+bw)]
+                                y_start = int(bh * 0.40)
+                                x_start = int(bw * 0.10)
+                                x_end = int(bw * 0.90)
+                                plate_crop = v_crop[y_start:bh, x_start:x_end].copy()
 
                             matched_class = "Vehicle"
                             for v in raw_vehicles:
@@ -155,7 +170,7 @@ class StreamProcessor:
                                     matched_class = v["class"]
                                     break
 
-                            self._submit_background_ocr(track, crop, matched_class, temporal_ocr_buffer)
+                            self._submit_background_ocr(track, plate_crop, matched_class, temporal_ocr_buffer)
                         else:
                             track.mark_ocr_skipped()
 
@@ -183,6 +198,24 @@ class StreamProcessor:
                 cv2.rectangle(annotated_frame, (10, 10), (10 + len(hud_text)*9 + 10, 36), (15, 23, 42), -1)
                 cv2.putText(annotated_frame, hud_text, (16, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 200), 1, cv2.LINE_AA)
 
+                # 6b. Render Animated Bottom HUD Banner for Remaining Frames & OCR Status
+                remaining_frames = max(0, total_frames - frame_counter) if total_frames > 0 else 0
+                pending_ocr_count = sum(1 for t in active_tracks if t.ocr_pending)
+                completed_ocr_count = sum(1 for t in active_tracks if bool(t.plate_number))
+
+                pulse_icon = ">> [OCR ACTIVE]" if (frame_counter // 5) % 2 == 0 else " > [OCR ACTIVE]"
+                bottom_banner_text = f"{pulse_icon} REMAINING FRAMES TO PROCESS BY OCR: {remaining_frames} | PENDING OCR: {pending_ocr_count} | RECOGNIZED: {completed_ocr_count}"
+
+                banner_h = 32
+                banner_y1 = max(40, h - banner_h - 12)
+                banner_y2 = h - 12
+                # Draw dark semi-transparent banner at bottom of camera feed
+                cv2.rectangle(annotated_frame, (10, banner_y1), (w - 10, banner_y2), (15, 23, 42), -1)
+                # Draw glowing amber border
+                cv2.rectangle(annotated_frame, (10, banner_y1), (w - 10, banner_y2), (245, 158, 11), 1)
+                # Render animated glowing text
+                cv2.putText(annotated_frame, bottom_banner_text, (20, banner_y2 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 230, 255), 1, cv2.LINE_AA)
+
                 # 7. Encode annotated frame to JPEG image bytes
                 _, jpeg_buffer = cv2.imencode('.jpg', annotated_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
                 frame_bytes = jpeg_buffer.tobytes()
@@ -201,14 +234,17 @@ class StreamProcessor:
             
             valid_records = []
             for idx, r in enumerate(final_tracked_records.values()):
-                r_copy = dict(r)
-                r_copy["job_id"] = stream_id
-                r_copy["sourceType"] = "live_stream"
-                if not r_copy.get("plateNumber"):
-                    r_copy["plateNumber"] = f"AP09 STRM-{idx+1}"
-                valid_records.append(r_copy)
+                p_num = r.get("plateNumber", "")
+                p_conf = r.get("confidence", 0.0)
+                # Only save records with valid recognized plate number (not UNREADABLE or 0% conf)
+                if p_num and p_num != "UNREADABLE" and p_conf >= 0.30:
+                    r_copy = dict(r)
+                    r_copy["job_id"] = stream_id
+                    r_copy["sourceType"] = "live_stream"
+                    valid_records.append(r_copy)
             if valid_records:
                 db_client.save_detections_batch(valid_records)
+                logger.info(f"Stream [{stream_id}] saved {len(valid_records)} valid ANPR plate records to MongoDB.")
 
 def get_stream_processor() -> StreamProcessor:
     return StreamProcessor()

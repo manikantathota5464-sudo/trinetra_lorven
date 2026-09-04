@@ -191,6 +191,17 @@ export const jobsApi = {
   },
 
   /**
+   * Clears stored detections from MongoDB.
+   */
+  async clearDetections(): Promise<void> {
+    try {
+      await fetch(`${API_BASE}/api/detections/clear`, { method: 'POST' });
+    } catch (e) {
+      console.error('Failed to clear detections:', e);
+    }
+  },
+
+  /**
    * Retrieves MongoDB storage statistics.
    */
   async getStats(): Promise<{ connected: boolean; total_detections: number; unique_plates: number; total_violations: number }> {

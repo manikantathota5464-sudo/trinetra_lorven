@@ -57,6 +57,7 @@ export interface FeedItem {
   isAnalyzing?: boolean;
   analysisProgress?: number;
   analysisStage?: string;
+  remainingFrames?: number;
 }
 
 // Props interface for customizing view overlays
@@ -162,6 +163,40 @@ const SimulatedCCTVFeed: React.FC<{
               playsInline
               className="w-full h-full object-cover block"
             />
+          )}
+          {/* ANIMATED OVERLAY FOR REMAINING FRAMES TO PROCESS BY OCR */}
+          {feed.isAnalyzing ? (
+            <div className="absolute bottom-2 left-2 right-2 z-30 bg-slate-950/95 border border-amber-500/90 rounded-lg p-2 backdrop-blur-md shadow-xl font-mono">
+              <div className="flex justify-between items-center text-[9px] mb-1">
+                <span className="text-amber-400 font-black flex items-center gap-1.5 animate-pulse">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 block animate-ping"></span>
+                  ⚡ BOTSORT OCR PROCESSING
+                </span>
+                <span className="text-cyan-300 font-extrabold bg-slate-900 px-1.5 py-0.5 rounded border border-cyan-800">
+                  Remaining Frames: {feed.remainingFrames ?? Math.max(0, 100 - (feed.analysisProgress || 0))}
+                </span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-amber-500 via-cyan-400 to-amber-500 h-1.5 rounded-full transition-all duration-300 animate-pulse"
+                  style={{ width: `${feed.analysisProgress || 30}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center text-[8px] text-slate-400 mt-1">
+                <span className="truncate text-amber-200">{feed.analysisStage || 'Evaluating plate crops in background...'}</span>
+                <span className="text-cyan-400 font-bold">{feed.analysisProgress || 0}%</span>
+              </div>
+            </div>
+          ) : (
+            <div className="absolute bottom-2 left-2 right-2 z-20 pointer-events-none opacity-90 group-hover:opacity-100 transition-opacity">
+              <div className="bg-slate-950/85 border border-cyan-500/40 backdrop-blur-xs rounded-md px-2 py-1 flex items-center justify-between text-[8.5px] font-mono text-cyan-300">
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                  OCR ENGINE ONLINE
+                </span>
+                <span className="text-amber-400 font-bold">BoT-SORT Tracker Active</span>
+              </div>
+            </div>
           )}
         </div>
       ) : feed.thumbnail || feed.imageUrl ? (

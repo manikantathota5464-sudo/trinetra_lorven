@@ -239,6 +239,17 @@ class MongoDBService:
             return True
         return False
 
+    def clear_detections(self) -> bool:
+        """Purge all stored detections from MongoDB collection and in-memory buffer."""
+        if self.is_connected and self.db is not None:
+            try:
+                self.db.detections.delete_many({})
+                logger.info("Cleared all detections from MongoDB collection.")
+            except Exception as e:
+                logger.error(f"Failed to clear MongoDB detections: {e}")
+        self._memory_detections.clear()
+        return True
+
     def get_db_stats(self) -> Dict[str, Any]:
         """Return live counts of total detections, unique plates, violations."""
         if self.is_connected and self.db is not None:

@@ -125,6 +125,12 @@ async def get_detections(
     )
     return {"count": len(records), "detections": records}
 
+@router.post("/detections/clear")
+async def clear_detections():
+    """Clear all stored detections from MongoDB database."""
+    db_client.clear_detections()
+    return {"status": "success", "message": "Database detections cleared."}
+
 @router.get("/stats")
 async def get_system_stats():
     """Query live MongoDB database storage metrics."""

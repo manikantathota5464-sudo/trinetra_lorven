@@ -88,6 +88,7 @@ def run_benchmark():
     processed_frames = vid_results["processed_frames"]
     processing_fps = vid_results["fps"]
     speedup_factor = duration_sec / max(0.001, total_vid_time)
+    tb = vid_results.get("timing_breakdown", {})
 
     print(f"  Video Duration    : {duration_sec:.1f} seconds ({total_frames} frames @ {fps:.0f} FPS)")
     print(f"  Frame Sample Rate : Every {settings.FRAME_SAMPLE_RATE}th frame ({processed_frames} sampled frames)")
@@ -96,6 +97,14 @@ def run_benchmark():
     print(f"  Effective Speed   : {processing_fps:.1f} FPS (Sampled frames)")
     print(f"  Overall Throughput: {total_frames / total_vid_time:.1f} FPS (Total video frames)")
     print(f"  Real-Time Factor  : {speedup_factor:.2f}x Real-Time ({speedup_factor:.2f}x faster than 10s video duration)")
+
+    print("\n--- [STAGE-BY-STAGE TIMING BREAKDOWN (AVERAGE PER SAMPLED FRAME)] ---")
+    print(f"  Frame Reading & Decoding : {tb.get('avg_frame_read_ms', 0):.2f} ms")
+    print(f"  Vehicle Detection (GPU)  : {tb.get('avg_vehicle_det_ms', 0):.2f} ms")
+    print(f"  Plate Detection (GPU)    : {tb.get('avg_plate_det_ms', 0):.2f} ms")
+    print(f"  BoT-SORT Tracker Update  : {tb.get('avg_tracker_ms', 0):.2f} ms")
+    print(f"  Plate Crop & Match       : {tb.get('avg_crop_ms', 0):.2f} ms")
+    print(f"  ANPR OCR Recognition     : {tb.get('avg_ocr_ms', 0):.2f} ms (Total OCR: {tb.get('total_ocr_ms', 0):.2f} ms)")
 
     print("\n==================================================")
     print(" BENCHMARK SUMMARY")
